@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple
 
 from . import constants as c, note_status_history
 from .pandas_utils import get_df_info
+from .pflip_model import PFlipModel
 
 import joblib
 import numpy as np
@@ -433,6 +434,7 @@ def remove_duplicate_notes(notes: pd.DataFrame) -> pd.DataFrame:
 
   return notes
 
+
 def compute_helpful_num(ratings: pd.DataFrame):
   """
   Populate the "helpfulNum" column.
@@ -448,6 +450,7 @@ def compute_helpful_num(ratings: pd.DataFrame):
   ratings.loc[ratings[c.helpfulnessLevelKey] == c.helpfulValueTsv, c.helpfulNumKey] = 1
   ratings = ratings.loc[~pd.isna(ratings[c.helpfulNumKey])]
   return ratings
+
 
 def preprocess_data(
   notes: pd.DataFrame,
@@ -602,11 +605,13 @@ def write_prescoring_output(
   prescoringNoteModelOutput: pd.DataFrame,
   prescoringRaterModelOutput: pd.DataFrame,
   noteTopicClassifier: Pipeline,
+  pflipClassifier: PFlipModel,
   prescoringMetaOutput: c.PrescoringMetaOutput,
   prescoringScoredNotesOutput: Optional[pd.DataFrame],
   noteModelOutputPath: str,
   raterModelOutputPath: str,
   noteTopicClassifierPath: str,
+  pflipClassifierPath: str,
   prescoringMetaOutputPath: str,
   prescoringScoredNotesOutputPath: Optional[str],
   headers: bool = True,
@@ -623,6 +628,8 @@ def write_prescoring_output(
     write_tsv_local(prescoringScoredNotesOutput, prescoringScoredNotesOutputPath, headers=headers)
 
   joblib.dump(noteTopicClassifier, noteTopicClassifierPath)
+  with open(pflipClassifierPath, "wb") as handle:
+    handle.write(pflipClassifier.serialize())
   joblib.dump(prescoringMetaOutput, prescoringMetaOutputPath)
 
 
@@ -694,6 +701,7 @@ class LocalDataLoader(CommunityNotesDataLoader):
     prescoringNoteModelOutputPath: Optional[str] = None,
     prescoringRaterModelOutputPath: Optional[str] = None,
     prescoringNoteTopicClassifierPath: Optional[str] = None,
+    prescoringPflipClassifierPath: Optional[str] = None,
     prescoringMetaOutputPath: Optional[str] = None,
   ) -> None:
     """
@@ -713,6 +721,7 @@ class LocalDataLoader(CommunityNotesDataLoader):
     self.prescoringNoteModelOutputPath = prescoringNoteModelOutputPath
     self.prescoringRaterModelOutputPath = prescoringRaterModelOutputPath
     self.prescoringNoteTopicClassifierPath = prescoringNoteTopicClassifierPath
+    self.prescoringPflipClassifierPath = prescoringPflipClassifierPath
     self.prescoringMetaOutputPath = prescoringMetaOutputPath
     self.headers = headers
     self.shouldFilterNotMisleadingNotes = shouldFilterNotMisleadingNotes
@@ -739,7 +748,7 @@ class LocalDataLoader(CommunityNotesDataLoader):
 
   def get_prescoring_model_output(
     self,
-  ) -> Tuple[pd.DataFrame, pd.DataFrame, Pipeline, c.PrescoringMetaOutput]:
+  ) -> Tuple[pd.DataFrame, pd.DataFrame, Pipeline, PFlipModel, c.PrescoringMetaOutput]:
     logger.info(
       f"Attempting to read prescoring model output from {self.prescoringNoteModelOutputPath}, {self.prescoringRaterModelOutputPath}, {self.prescoringNoteTopicClassifierPath}, {self.prescoringMetaOutputPath}"
     )
@@ -781,6 +790,12 @@ class LocalDataLoader(CommunityNotesDataLoader):
       prescoringNoteTopicClassifier = joblib.load(self.prescoringNoteTopicClassifierPath)
     assert type(prescoringNoteTopicClassifier) == Pipeline
 
+    if self.prescoringPflipClassifierPath is None:
+      prescoringPflipClassifier = None
+    else:
+      prescoringPflipClassifier = joblib.load(self.prescoringPflipClassifierPath)
+    assert type(prescoringPflipClassifier) == PFlipModel
+
     if self.prescoringMetaOutputPath is None:
       prescoringMetaOutput = None
     else:
@@ -791,6 +806,7 @@ class LocalDataLoader(CommunityNotesDataLoader):
       prescoringNoteModelOutput,
       prescoringRaterModelOutput,
       prescoringNoteTopicClassifier,
+      prescoringPflipClassifier,
       prescoringMetaOutput,
     )
 

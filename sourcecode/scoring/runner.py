@@ -30,7 +30,7 @@ def parse_args():
     action="store_false",
     dest="check_flips",
   )
-  parser.set_defaults(check_flips=True)
+  parser.set_defaults(check_flips=False)
   parser.add_argument(
     "--enforce-types",
     dest="enforce_types",
@@ -43,7 +43,7 @@ def parse_args():
     help="Log to stderr when types in Pandas operations do not meet expectations.",
     action="store_false",
   )
-  parser.set_defaults(enforce_types=True)
+  parser.set_defaults(enforce_types=False)
   parser.add_argument(
     "-e", "--enrollment", default=c.enrollmentInputPath, help="note enrollment dataset"
   )
@@ -158,7 +158,13 @@ def parse_args():
     dest="prescoring_delay_hours",
     help="Filter prescoring input to simulate delay in hours",
   )
-
+  parser.add_argument(
+    "--sample-ratings",
+    default=0.0,
+    type=float,
+    dest="sample_ratings",
+    help="Set to sample ratings at random.",
+  )
   return parser.parse_args()
 
 
@@ -168,6 +174,7 @@ def _run_scorer(
   dataLoader=None,
   extraScoringArgs={},
 ):
+  logger.info("beginning scorer execution")
   assert args is not None, "args must be available"
   if args.epoch_millis:
     c.epochMillis = args.epoch_millis
@@ -204,6 +211,12 @@ def _run_scorer(
   else:
     previousScoredNotes = None
     previousAuxiliaryNoteInfo = None
+
+  # Sample ratings to decrease runtime
+  if args.sample_ratings:
+    origSize = len(ratings)
+    ratings = ratings.sample(frac=args.sample_ratings)
+    logger.info(f"ratings reduced from {origSize} to {len(ratings)}")
 
   # Invoke scoring and user contribution algorithms.
   scoredNotes, helpfulnessScores, newStatus, auxNoteInfo = run_scoring(

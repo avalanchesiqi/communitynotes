@@ -87,9 +87,33 @@ Additionally, because the matrix factorization is re-trained from scratch every 
 
 ## Modeling Uncertainty
 
+While the matrix factorization approach above has many nice properties, it doesn't give us a natural built-in way to estimate the uncertainty of its parameters.
+We take two approaches to model uncertainty:
+
+**Pseudo-rating sensitivity analysis**
+
 While the matrix factorization approach above has many nice properties, it doesn't give us a natural built-in way to estimate the uncertainty of its parameters. One approach that we use to help quantify the uncertainty in our parameter estimates is by adding in "extreme" ratings from "pseudo-raters", and measuring the maximum and minimum possible values that each note's intercept and factor parameters take on after all possible pseudo-ratings are adding. We add both helpful and not-helpful ratings, from pseudo-raters with the max and min possible rater intercepts, and with the max and min possible factors (as well as 0, since 0-factor raters can often have outsized impact on note intercepts). This approach is similar in spirit to the idea of pseudocounts in Bayesian modeling, or to Shapley values.
 
 We currently assign notes a "Not Helpful" status if the max (upper confidence bound) of their intercept is less than -0.04, in addition to the rules on the raw intercept values defined in the previous section.
+
+**Supervised confidence modeling**
+
+We also employ a supervised model to detect low confidence matrix factorization results.
+If the model predicts that a note will lose Helpful status, then the note will remain in Needs More Ratings status for an additional 30 minutes to allow it to gather a larger set of ratings.
+If after 30 minutes the note still meets Helpful standards based on the matrix factorization scoring, the note will be rated Helpful and shown on X.
+In all cases, the final status of the note is determined by matrix factorization.
+The maximum effect of the supervised model is no more than a 30 minute delay.
+This helps reduce notes briefly showing and then returning to Needs More Rating status.
+
+The training data for the supervised confidence model includes all notes that meet the criteria for Helpful status _at some point in time_.
+Notes that _ultimately lose_ Helpful status are treated and positives, and notes that _retain_ Helpful status are treated as negatives.
+The features employed by the model include:
+- Helpfulness and tag ratings from individual contributors
+- Aggregate ratios of helpful and non-helpful tags across all ratings for a note
+- Statistics summarizing the Helpful ratings for a note (e.g. standard deviation of user factors from Helpful ratings)
+- Bucket counts of Helpful, Somewhat Helpful and Not Helpful ratings, partitioned by user factor $f_u$ as positive ($f_u >.3$), neutral ($-.3 \leq f_u \leq .3$) and negative ($f_u <-.3$)
+
+The model uses logistic regression to predict note status outcomes, and is calibrated to delay Helpful status for no more than 25% of notes that ultimately stabilize to Helpful status.
 
 ## Tag Outlier Filtering
 
@@ -189,12 +213,16 @@ The Core, Expansion, ExpansionPlus and Group models described in Multi-Model Not
 Empirically, we have observed that some topics are better represented with narrower modeling that can learn viewpoint representations for a more specific topic.
 Improving the strength of modeling for a topic allows us to better identify notes that are helpful to people from different points of view on the given topic.
 
-[Our initial approach](https://github.com/twitter/communitynotes/blob/main/sourcecode/scoring/topic_model.py) to topic specific modeling contains two phases.
-In the first phase each post with one or more notes is assigned to a predefined set of topics where each topic is specified using a short list of associated seed terms (e.g. “Messi”, “Ronaldo”, etc.).
+[Our approach](https://github.com/twitter/communitynotes/blob/main/sourcecode/scoring/topic_model.py) to topic specific modeling contains two phases.
+In the first phase, each post with one or more notes is assigned to a predefined set of topics where each topic is specified using a short list of associated seed terms (e.g. “Messi”, “Ronaldo”, etc.).
 If any of the notes on a post match a seed term, then the post and all associated notes are assigned to that topic.
 Posts without matches or with multiple matches are unassigned.
-After initial assignment, a multi-class logistic regression model trained on the data labeled with seed terms expands coverage for each topic by classifying unassigned posts.
-Posts that are not confidently labeled by the model remain unassigned and are not included in topic modeling.
+
+Using the assigned topic labels, we train a multi-class logistic regression model to predict post topics.
+We remove any tokens containing a seed term used to assign labels.
+After training, we apply the model to update topic assignment for all posts and associated notes.
+Posts that did not contain a seed term may be assigned to a topic or remain unassigned based on the predictions of the model.
+Posts that did contain a seed term will remain assigned to that topic unless the model predicts the note should remain "unassigned" with a score $>0.85$, in which case the post will be unassigned and excluded from further topic modeling.
 
 In the second phase, we train a _Topic Model_ over all of the notes and ratings which have been assigned to each topic.
 Topic Models share the same architecture and hyperparmeters as the Core Model, but differ in the rating selection process.
@@ -214,13 +242,13 @@ The second round uses the user factors learned during the first round to weight 
 
 As with the baseline matrix factorization approach, we predict each rating as
 
-$$ \hat{r}_{un} = \mu + i_u + i_n + f_u \cdot f_n $$
+$$ r̂_{un} = \mu + i_u + i_n + f_u \cdot f_n $$
 
 During the first round, we minimize the loss shown below over the set of all observed ratings $r_{un}$.
 Note that this model uses a single-dimensional factor representation. 
 
 $$
-\sum_{r_{un}} (r_{un} - \hat{r}_{un})^2 + \lambda_{iu} i_u^2 + \lambda_{in} i_n^2 + \lambda_{\mu} \mu^2 + \lambda_{fu} f_u^2 + \lambda_{fn} f_n^2 + \lambda_{if} i_n |f_n|
+\sum_{r_{un}} (r_{un} - r̂_{un})^2 + \lambda_{iu} i_u^2 + \lambda_{in} i_n^2 + \lambda_{\mu} \mu^2 + \lambda_{fu} f_u^2 + \lambda_{fn} f_n^2 + \lambda_{if} i_n |f_n|
 $$
 
 Where $\lambda_{iu}=30\lambda$, $\lambda_{in}=5\lambda$, $\lambda_{\mu}=5\lambda$, $\lambda_{fu}=\dfrac{\lambda}{4}$, $\lambda_{fn}=\dfrac{\lambda}{3}$, $\lambda_{if}=25\lambda$ and $\lambda=0.03$.
@@ -243,7 +271,7 @@ Notice that the weights $w^S_{un}$ function to balance the loss across ratings f
 Consequently, the loss optimized during the second round is:
 
 $$
-\sum_{r_{un}} w_{un} (r_{un} - \hat{r}_{un})^2 + \lambda_{iu} i_u^2 + \lambda_{in} i_n^2 + \lambda_{\mu} \mu^2 + \lambda_{fu} f_u^2 + \lambda_{fn} f_n^2 + \lambda_{if} i_n |f_n|
+\sum_{r_{un}} w_{un} (r_{un} - r̂_{un})^2 + \lambda_{iu} i_u^2 + \lambda_{in} i_n^2 + \lambda_{\mu} \mu^2 + \lambda_{fu} f_u^2 + \lambda_{fn} f_n^2 + \lambda_{if} i_n |f_n|
 $$
 
 Combined with the regularization adjustments from the first round, the added weighting functions to improve the learned user representation, ultimately allowing the model to recognize more instances of consensus among users that hold different perspectives.
@@ -260,10 +288,8 @@ This approach allows us to continue optimizing the ranking algorithm with a focu
 Before a note is two weeks old, the helpfulness status will continue to be updated each time time the ranking algorithm is run.
 After a note turns two weeks old we store the helpfulness status for that note and use the stored status in the future, including for displaying notes on X and calculating user contribution statistics.
 
-While a note may be scored by the Core, Expansion and Group models, we only finalize note status based on the Core model.
-Notes that are only ranked by the Expansion model are not eligible for stabilization since the Expansion model is under development and may be revised to improve quality at any time.
-Similarly, if a note is rated Helpful by a Group model and Needs More Ratings by the Core model, we will allow the note status to remain at Helpful even after the note is two weeks old.
-If at any point both models agree and the Core model scores the note as Helpful or a Group model scores the note as Needs More Ratings, then the status will be finalized in agreement with both models.
+We finalize note status if the status was decided by the Core, Expansion or Group models. 
+Notes that are only ranked by the ExpansionPlus model, or whose status is set to Needs More Ratings by a TopicModel, are not eligible for stabilization since those models are under development and may be revised to improve quality at any time.
 
 ## Determining Note Status Explanation Tags
 
@@ -303,7 +329,7 @@ For not-helpful notes:
 
 ## Complete Algorithm Steps:
 
-### Prescoring
+**Prescoring**
 
 1. Pre-filter the data: to address sparsity issues, only raters with at least 10 ratings and notes with at least 5 ratings are included (although we don’t recursively filter until convergence). Also, coalesce ratings made by raters with high post-selection-similarity.
 2. For each scorer (Core, Expansion, ExpansionPlus, and multiple Group and Topic scorers):
@@ -311,7 +337,7 @@ For not-helpful notes:
     - Compute Author and Rater Helpfulness Scores based on the results of the first matrix factorization, then filter out raters with low helpfulness scores from the ratings data as described in [Filtering Ratings Based on Helpfulness Scores](./contributor-scores.md).
     - Fit the harassment-abuse tag-consensus matrix factorization model on the helpfulness-score filtered ratings, then update Author and Rater Helpfulness scores using the output of the tag-consensus model.
 
-### Scoring
+**Scoring**
 
 1. Load the output of step 2 above from prescoring, but re-run step 1 on the newest available notes and ratings data.
 2. For each scorer (Core, Expansion, ExpansionPlus, and multiple Group and Topic scorers):
@@ -324,10 +350,18 @@ For not-helpful notes:
 
 ## What’s New?
 
+**Dec 12, 2024**
+- Begin status stabilization for note statuses decided by the Expansion model.
+
+**Oct 14, 2024**
+- Update topic modeling to allow the learned topic assignment model to override rule-based labels at high confidence levels.
+
+**Oct 7, 2024**
+- Supervised confidence modeling to reduce incidents of notes gaining and losing Helpful status.
+- Additional rescoring logic to guarantee notes are rescored during the status stabilization period.
+
 **Sep 17, 2024**
 - Lower threshold for coalescing ratings with high post-selection-similarity.
-
-**Aug 21, 2024**
 
 **Aug 12, 2024**
 - Add a 30min delay for notes that meet the CRH criteria ("NMRDueToStableCRHTime") to ensure they stably meet that criteria across multiple scoring runs before CRHing them
