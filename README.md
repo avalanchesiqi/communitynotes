@@ -31,6 +31,24 @@ python3 main.py \
   --scorers MFCoreScorer &> main_tiny.log
 ```
 
+## Use the `cutoff-timestamp-millis` argument on the original data
+* Note that this is much slower than the above method as it loads all data
+```bash
+  python3 main.py \
+  --enrollment data/cn_20250428/userEnrollment-00000.tsv\
+  --notes data/cn_20250428/notes-00000.tsv \
+  --ratings data/cn_20250428/ratings \
+  --status data/cn_20250428/noteStatusHistory-00000.tsv \
+  --outdir data/cn_20250428 \
+  --noenforce-types \
+  --nocheck-flips \
+  --nopseudoraters \
+  --nostrict-columns \
+  --no-parquet \
+  --cutoff-timestamp-millis 1672531200000 \
+  --scorers MFCoreScorer &> main_cn_20250428.log
+```
+
 ## Use the very large real world data
 Download up-to-date [CommunityNotes data](https://twitter.com/i/communitynotes/download-data),
 
