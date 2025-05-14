@@ -24,6 +24,8 @@ def extract_subsample(data_dir, end_datetime):
     print(f'Total number of notes: {num_note:,}')
     # filter the notes that are published before the end timestamp
     tiny_note_df = note_df[note_df['createdAtMillis'] < end_timestamp]
+    # set the summary column to empty string
+    tiny_note_df = tiny_note_df.assign(summary='')
     num_tiny_note = len(tiny_note_df)
     print(f'Number of notes before {end_datetime}: {num_tiny_note:,}')
     print(f'Note sampling rate: {num_tiny_note / num_note:.2%}\n')

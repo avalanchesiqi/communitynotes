@@ -1251,14 +1251,21 @@ def run_prescoring(
     logger.info(get_df_info(ratings, "ratings"))
     logger.info(get_df_info(noteStatusHistory, "noteStatusHistory"))
     logger.info(get_df_info(userEnrollment, "userEnrollment"))
-  with c.time_block("Note Topic Assignment"):
-    topicModel = TopicModel()
-    noteTopicClassifierPipe, seedLabels, conflictedTexts = topicModel.train_note_topic_classifier(
-      notes
-    )
-    noteTopics = topicModel.get_note_topics(
-      notes, noteTopicClassifierPipe, seedLabels, conflictedTextsForAccuracyEval=conflictedTexts
-    )
+  # ------ Edited by Siqi: Start ------
+  if enabledScorers is None or Scorers.MFTopicScorer in enabledScorers:
+    with c.time_block("Note Topic Assignment"):
+      topicModel = TopicModel()
+      noteTopicClassifierPipe, seedLabels, conflictedTexts = topicModel.train_note_topic_classifier(
+        notes
+      )
+      noteTopics = topicModel.get_note_topics(
+        notes, noteTopicClassifierPipe, seedLabels, conflictedTextsForAccuracyEval=conflictedTexts
+      )
+  else:
+    with c.time_block("Set Note Topics to Dummy dataframe by copying all noteIds"):
+      noteTopics = notes[[c.noteIdKey]].copy()
+      noteTopicClassifierPipe = None
+  # ------ Edited by Siqi: End ------
 
   logger.info(
     f"ratings summary before PSS: {get_df_fingerprint(ratings, [c.noteIdKey, c.raterParticipantIdKey])}"
@@ -1810,15 +1817,21 @@ def run_final_note_scoring(
   with c.time_block("Preprocess smaller dataset since we skipped preprocessing at read time"):
     notes, ratings, noteStatusHistory = preprocess_data(notes, ratings, noteStatusHistory)
 
-  with c.time_block("Note Topic Assignment"):
-    # Prune notesFull to include all notes on any post that is having a note scored.  Recall that
-    # since a post may have multiple notes, and some notes may be scored while others are not,
-    # topic assignment may include text from notes that are not otherwise scored.  Casting to
-    # np.int64 is necessary since datatypes can be inconsistent in unit tests.
-    scoredTweets = set(notes[c.tweetIdKey].astype(np.int64))
-    notesFull = notesFull[notesFull[c.tweetIdKey].astype(np.int64).isin(scoredTweets)]
-    topicModel = TopicModel()
-    noteTopics = topicModel.get_note_topics(notesFull, noteTopicClassifier)
+  # ------ Edited by Siqi: Start ------
+  if enabledScorers is None or Scorers.MFTopicScorer in enabledScorers:
+    with c.time_block("Note Topic Assignment"):
+      # Prune notesFull to include all notes on any post that is having a note scored.  Recall that
+      # since a post may have multiple notes, and some notes may be scored while others are not,
+      # topic assignment may include text from notes that are not otherwise scored.  Casting to
+      # np.int64 is necessary since datatypes can be inconsistent in unit tests.
+      scoredTweets = set(notes[c.tweetIdKey].astype(np.int64))
+      notesFull = notesFull[notesFull[c.tweetIdKey].astype(np.int64).isin(scoredTweets)]
+      topicModel = TopicModel()
+      noteTopics = topicModel.get_note_topics(notesFull, noteTopicClassifier)
+  else:
+    with c.time_block("Set Note Topics to Dummy dataframe by copying all noteIds"):
+      noteTopics = notes[[c.noteIdKey]].copy()
+  # ------ Added by Siqi: End ------
 
   with c.time_block("Post Selection Similarity: Final Scoring"):
     logger.info(f"Post Selection Similarity Final Scoring: begin with {len(ratings)} ratings.")

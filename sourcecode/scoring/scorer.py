@@ -122,38 +122,43 @@ class Scorer(ABC):
     if (not self._includedGroups) and (not self._includedTopics):
       return ratings, noteStatusHistory
     logger.info(f"Filtering ratings for {self.get_name()}.  Original rating length: {len(ratings)}")
-    # Apply topic filter for topic models
-    if self._includedTopics:
-      notes = noteTopics[noteTopics[c.noteTopicKey].isin(self._includedTopics)][[c.noteIdKey]]
-      ratings = ratings.merge(notes)
-      noteStatusHistory = noteStatusHistory.merge(notes)
-    if self._excludeTopics:
-      ratings = ratings[~ratings[c.noteIdKey].isin(noteTopics[c.noteIdKey])]
-      noteStatusHistory = noteStatusHistory[
-        ~noteStatusHistory[c.noteIdKey].isin(noteTopics[c.noteIdKey])
-      ]
-    logger.info(f"  Ratings after topic filter: {len(ratings)}")
-    # Apply group filter
-    if self._includedGroups:
-      userEnrollment = userEnrollment[[c.participantIdKey, c.modelingGroupKey]].rename(
-        columns={c.participantIdKey: c.raterParticipantIdKey}
-      )
-      userEnrollment.loc[:, _IN_GROUP] = (
-        userEnrollment[c.modelingGroupKey].isin(self._includedGroups).astype(pd.BooleanDtype())
-      )
-      ratings = ratings.merge(
-        userEnrollment[[c.raterParticipantIdKey, _IN_GROUP]], on=c.raterParticipantIdKey, how="left"
-      )
-      logger.info(f"  Ratings without assigned group: {ratings[_IN_GROUP].isna().sum()}")
+    # ------ Edited by Siqi: Start ------
+    # if noteTopics only has one column, it means that it is a dummy dataframe
+    # only process it if it has more than one column
+    if noteTopics.shape[1] > 1:
+      # Apply topic filter for topic models
+      if self._includedTopics:
+        notes = noteTopics[noteTopics[c.noteTopicKey].isin(self._includedTopics)][[c.noteIdKey]]
+        ratings = ratings.merge(notes)
+        noteStatusHistory = noteStatusHistory.merge(notes)
+      if self._excludeTopics:
+        ratings = ratings[~ratings[c.noteIdKey].isin(noteTopics[c.noteIdKey])]
+        noteStatusHistory = noteStatusHistory[
+          ~noteStatusHistory[c.noteIdKey].isin(noteTopics[c.noteIdKey])
+        ]
+      logger.info(f"  Ratings after topic filter: {len(ratings)}")
+      # Apply group filter
+      if self._includedGroups:
+        userEnrollment = userEnrollment[[c.participantIdKey, c.modelingGroupKey]].rename(
+          columns={c.participantIdKey: c.raterParticipantIdKey}
+        )
+        userEnrollment.loc[:, _IN_GROUP] = (
+          userEnrollment[c.modelingGroupKey].isin(self._includedGroups).astype(pd.BooleanDtype())
+        )
+        ratings = ratings.merge(
+          userEnrollment[[c.raterParticipantIdKey, _IN_GROUP]], on=c.raterParticipantIdKey, how="left"
+        )
+        logger.info(f"  Ratings without assigned group: {ratings[_IN_GROUP].isna().sum()}")
 
-      ratings = ratings.fillna({_IN_GROUP: self._includeUnassigned})
-      if self._strictInclusion:
-        print("Excluding ratings outside of group")
-        ratios = ratings[[c.noteIdKey, _IN_GROUP]].groupby(c.noteIdKey).mean().reset_index()
-        ratings = ratings.merge(ratios[ratios[_IN_GROUP] >= self._captureThreshold][[c.noteIdKey]])
-      ratings = ratings.fillna({_IN_GROUP: self._includeUnassigned})
-      ratings = ratings[ratings[_IN_GROUP]].drop(columns=[_IN_GROUP])
-    logger.info(f"  Ratings after group filter: {len(ratings)}")
+        ratings = ratings.fillna({_IN_GROUP: self._includeUnassigned})
+        if self._strictInclusion:
+          print("Excluding ratings outside of group")
+          ratios = ratings[[c.noteIdKey, _IN_GROUP]].groupby(c.noteIdKey).mean().reset_index()
+          ratings = ratings.merge(ratios[ratios[_IN_GROUP] >= self._captureThreshold][[c.noteIdKey]])
+        ratings = ratings.fillna({_IN_GROUP: self._includeUnassigned})
+        ratings = ratings[ratings[_IN_GROUP]].drop(columns=[_IN_GROUP])
+      logger.info(f"  Ratings after group filter: {len(ratings)}")
+    # ------ Edited by Siqi: End ------
     return ratings, noteStatusHistory
 
   def _postprocess_output(
