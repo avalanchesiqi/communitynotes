@@ -635,25 +635,27 @@ def compute_scored_notes(
       ),
       onlyApplyToNotesThatSayTweetIsMisleading=False,
     ),
-    scoring_rules.RuleFromFunction(
-      RuleID.UCB_CRNH,
-      {RuleID.INITIAL_NMR},
-      c.currentlyRatedNotHelpful,
-      lambda noteStats: is_crnh_ucb_function(
-        noteStats, minRatingsNeeded, crnhThresholdUCBIntercept
-      ),
-      onlyApplyToNotesThatSayTweetIsMisleading=False,
-    ),
-    scoring_rules.RuleFromFunction(
-      RuleID.RATIO_CRNH,
-      {RuleID.INITIAL_NMR},
-      c.currentlyRatedNotHelpful,
-      lambda noteStats: is_crnh_ratio_function(noteStats, minRatingsNeeded, do=finalRound),
-      onlyApplyToNotesThatSayTweetIsMisleading=False,
-    ),
-    scoring_rules.NMtoCRNH(
-      RuleID.NM_CRNH, {RuleID.INITIAL_NMR}, c.currentlyRatedNotHelpful, crnhThresholdNMIntercept
-    ),
+    # ------ Commment out previous code: Start ------
+    # scoring_rules.RuleFromFunction(
+    #   RuleID.UCB_CRNH,
+    #   {RuleID.INITIAL_NMR},
+    #   c.currentlyRatedNotHelpful,
+    #   lambda noteStats: is_crnh_ucb_function(
+    #     noteStats, minRatingsNeeded, crnhThresholdUCBIntercept
+    #   ),
+    #   onlyApplyToNotesThatSayTweetIsMisleading=False,
+    # ),
+    # scoring_rules.RuleFromFunction(
+    #   RuleID.RATIO_CRNH,
+    #   {RuleID.INITIAL_NMR},
+    #   c.currentlyRatedNotHelpful,
+    #   lambda noteStats: is_crnh_ratio_function(noteStats, minRatingsNeeded, do=finalRound),
+    #   onlyApplyToNotesThatSayTweetIsMisleading=False,
+    # ),
+    # scoring_rules.NMtoCRNH(
+    #   RuleID.NM_CRNH, {RuleID.INITIAL_NMR}, c.currentlyRatedNotHelpful, crnhThresholdNMIntercept
+    # ),
+    # ------ Commment out previous code: End ------
   ]
   if finalRound:
     with c.time_block("compute_scored_notes: compute tag aggregates"):
@@ -689,69 +691,72 @@ def compute_scored_notes(
       )
     assert tagFilterThresholds is not None
 
-    # Add tag filtering and sticky scoring logic.
-    rules.extend(
-      [
-        scoring_rules.AddCRHInertia(
-          RuleID.GENERAL_CRH_INERTIA,
-          {RuleID.GENERAL_CRH},
-          c.currentlyRatedHelpful,
-          crhThreshold - inertiaDelta,
-          crhThreshold,
-          minRatingsNeeded,
-        ),
-        scoring_rules.FilterTagOutliers(
-          RuleID.TAG_OUTLIER,
-          {RuleID.GENERAL_CRH},
-          c.firmReject if firmRejectThreshold is not None else c.needsMoreRatings,
-          tagFilterThresholds=tagFilterThresholds,
-        ),
-      ]
-    )
-    if crhSuperThreshold is not None:
-      rules.extend(
-        [
-          scoring_rules.RuleFromFunction(
-            RuleID.ELEVATED_CRH,
-            {RuleID.INITIAL_NMR},
-            c.currentlyRatedHelpful,
-            lambda noteStats: is_crh_function(noteStats, minRatingsNeeded, crhSuperThreshold),
-            onlyApplyToNotesThatSayTweetIsMisleading=True,
-          ),
-          scoring_rules.AddCRHInertia(
-            RuleID.ELEVATED_CRH_INERTIA,
-            {RuleID.TAG_OUTLIER},
-            c.currentlyRatedHelpful,
-            crhSuperThreshold - inertiaDelta,
-            crhSuperThreshold,
-            minRatingsNeeded,
-          ),
-        ]
-      )
-    rules.extend(
-      [
-        scoring_rules.FilterIncorrect(
-          RuleID.INCORRECT_OUTLIER,
-          {RuleID.TAG_OUTLIER},
-          c.firmReject if firmRejectThreshold is not None else c.needsMoreRatings,
-          tagThreshold=2,
-          voteThreshold=3,
-          weightedTotalVotes=incorrectFilterThreshold,
-        ),
-        scoring_rules.FilterLowDiligence(
-          RuleID.LOW_DILIGENCE,
-          {RuleID.INCORRECT_OUTLIER},
-          c.firmReject if firmRejectThreshold is not None else c.needsMoreRatings,
-          interceptThreshold=lowDiligenceThreshold,
-        ),
-        scoring_rules.FilterLargeFactor(
-          RuleID.LARGE_FACTOR,
-          {RuleID.LOW_DILIGENCE},
-          c.firmReject if firmRejectThreshold is not None else c.needsMoreRatings,
-          factorThreshold=factorThreshold,
-        ),
-      ]
-    )
+    # ------ Commment out previous code: Start ------
+    # # Add tag filtering and sticky scoring logic.
+    # rules.extend(
+    #   [
+    #     scoring_rules.AddCRHInertia(
+    #       RuleID.GENERAL_CRH_INERTIA,
+    #       {RuleID.GENERAL_CRH},
+    #       c.currentlyRatedHelpful,
+    #       crhThreshold - inertiaDelta,
+    #       crhThreshold,
+    #       minRatingsNeeded,
+    #     ),
+    #     scoring_rules.FilterTagOutliers(
+    #       RuleID.TAG_OUTLIER,
+    #       {RuleID.GENERAL_CRH},
+    #       c.firmReject if firmRejectThreshold is not None else c.needsMoreRatings,
+    #       tagFilterThresholds=tagFilterThresholds,
+    #     ),
+    #   ]
+    # )
+    # if crhSuperThreshold is not None:
+    #   rules.extend(
+    #     [
+    #       scoring_rules.RuleFromFunction(
+    #         RuleID.ELEVATED_CRH,
+    #         {RuleID.INITIAL_NMR},
+    #         c.currentlyRatedHelpful,
+    #         lambda noteStats: is_crh_function(noteStats, minRatingsNeeded, crhSuperThreshold),
+    #         onlyApplyToNotesThatSayTweetIsMisleading=True,
+    #       ),
+    #       scoring_rules.AddCRHInertia(
+    #         RuleID.ELEVATED_CRH_INERTIA,
+    #         {RuleID.TAG_OUTLIER},
+    #         c.currentlyRatedHelpful,
+    #         crhSuperThreshold - inertiaDelta,
+    #         crhSuperThreshold,
+    #         minRatingsNeeded,
+    #       ),
+    #     ]
+    #   )
+    # rules.extend(
+    #   [
+    #     scoring_rules.FilterIncorrect(
+    #       RuleID.INCORRECT_OUTLIER,
+    #       {RuleID.TAG_OUTLIER},
+    #       c.firmReject if firmRejectThreshold is not None else c.needsMoreRatings,
+    #       tagThreshold=2,
+    #       voteThreshold=3,
+    #       weightedTotalVotes=incorrectFilterThreshold,
+    #     ),
+    #     scoring_rules.FilterLowDiligence(
+    #       RuleID.LOW_DILIGENCE,
+    #       {RuleID.INCORRECT_OUTLIER},
+    #       c.firmReject if firmRejectThreshold is not None else c.needsMoreRatings,
+    #       interceptThreshold=lowDiligenceThreshold,
+    #     ),
+    #     scoring_rules.FilterLargeFactor(
+    #       RuleID.LARGE_FACTOR,
+    #       {RuleID.LOW_DILIGENCE},
+    #       c.firmReject if firmRejectThreshold is not None else c.needsMoreRatings,
+    #       factorThreshold=factorThreshold,
+    #     ),
+    #   ]
+    # )
+    # ------ Commment out previous code: End ------
+
     if firmRejectThreshold is not None:
       rules.append(
         scoring_rules.RejectLowIntercept(

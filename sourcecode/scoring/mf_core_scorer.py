@@ -69,7 +69,9 @@ class MFCoreScorer(MFBaseScorer):
       c.coreNoteFactor1Key,
       c.coreRatingStatusKey,
       c.coreActiveRulesKey,
-      c.activeFilterTagsKey,
+      # ------ Commment out previous code: Start ------
+      # c.activeFilterTagsKey,
+      # ------ Commment out previous code: End ------
       c.coreNoteInterceptMinKey,
       c.coreNoteInterceptMaxKey,
       c.coreNumFinalRoundRatingsKey,

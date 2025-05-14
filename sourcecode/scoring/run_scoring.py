@@ -171,9 +171,12 @@ def _get_scorers(
       )
     ]
   if enabledScorers is None or Scorers.MFCoreScorer in enabledScorers:
+    # ------ Edited by Siqi: Start ------
     scorers[Scorers.MFCoreScorer] = [
-      MFCoreScorer(seed, pseudoraters, useStableInitialization=useStableInitialization, threads=12)
+      MFCoreScorer(seed, pseudoraters, useStableInitialization=useStableInitialization, threads=12, 
+                   firmRejectThreshold=None, minMinorityNetHelpfulRatings=None, minMinorityNetHelpfulRatio=None)
     ]
+    # ------ Edited by Siqi: End ------
   if enabledScorers is None or Scorers.MFExpansionScorer in enabledScorers:
     scorers[Scorers.MFExpansionScorer] = [
       MFExpansionScorer(seed, useStableInitialization=useStableInitialization, threads=12)
