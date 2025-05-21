@@ -1,3 +1,83 @@
+# Siqi's notes
+
+## Setup Python venv and install requirements
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
+```
+
+## Create a tiny subsample
+```bash
+cd sourcecode/data/tiny_data 
+python3 create_tiny_data.py --data_dir ../cn_20250428 --end_datetime 2023-01-01
+```
+
+## Use a tiny subsample
+```bash
+cd sourcecode
+python3 main.py \
+  --enrollment data/tiny_data/userEnrollment-00000.tsv \
+  --notes data/tiny_data/tiny-notes-00000.tsv \
+  --ratings data/tiny_data/tiny-ratings-00000.tsv \
+  --status data/tiny_data/tiny-noteStatusHistory-00000.tsv \
+  --outdir data/tiny_data \
+  --noenforce-types \
+  --nocheck-flips \
+  --nopseudoraters \
+  --nostrict-columns \
+  --no-parquet \
+  --scorers MFCoreScorer &> main_tiny.log
+```
+
+## Use the `cutoff-timestamp-millis` argument on the original data
+* Note that this is much slower than the above method as it loads all data
+```bash
+  python3 main.py \
+  --enrollment data/cn_20250428/userEnrollment-00000.tsv\
+  --notes data/cn_20250428/notes-00000.tsv \
+  --ratings data/cn_20250428/ratings \
+  --status data/cn_20250428/noteStatusHistory-00000.tsv \
+  --outdir data/cn_20250428 \
+  --noenforce-types \
+  --nocheck-flips \
+  --nopseudoraters \
+  --nostrict-columns \
+  --no-parquet \
+  --cutoff-timestamp-millis 1672531200000 \
+  --scorers MFCoreScorer &> main_cn_20250428.log
+```
+
+## Use the very large real world data
+Download up-to-date [CommunityNotes data](https://twitter.com/i/communitynotes/download-data),
+
+``` bash
+cd sourcecode
+mkdir data
+mkdir data/cn_{date}  # Suggest tagging the data version with the date
+# download Notes data, Note status history data, User enrollment status data
+mkdir data/cn_{date}/ratings
+# download Ratings data to the ratings directory
+```
+
+Then after downloading the data files (see next section) into /sourcecode/, you will be able to run:
+```bash
+cd sourcecode
+python3 main.py \
+  --enrollment data/cn_{date}/userEnrollment-00000.tsv \
+  --notes data/cn_{date}/notes-00000.tsv \
+  --ratings data/cn_{date}/ratings \
+  --status data/cn_{date}/noteStatusHistory-00000.tsv \
+  --outdir data/cn_{date} \
+  --noenforce-types \
+  --nopseudoraters \
+  --nostrict-columns \
+  --no-parquet
+```
+
+Multiple versions of Python3 should work. I have tested the code with Python 3.9.6.
+
 # Community Notes
 
 ![](/documentation/images/help-rate-this-note-expanded.png)
