@@ -137,28 +137,28 @@ class Scorer(ABC):
           ~noteStatusHistory[c.noteIdKey].isin(noteTopics[c.noteIdKey])
         ]
       logger.info(f"  Ratings after topic filter: {len(ratings)}")
-      # Apply group filter
-      if self._includedGroups:
-        userEnrollment = userEnrollment[[c.participantIdKey, c.modelingGroupKey]].rename(
-          columns={c.participantIdKey: c.raterParticipantIdKey}
-        )
-        userEnrollment.loc[:, _IN_GROUP] = (
-          userEnrollment[c.modelingGroupKey].isin(self._includedGroups).astype(pd.BooleanDtype())
-        )
-        ratings = ratings.merge(
-          userEnrollment[[c.raterParticipantIdKey, _IN_GROUP]], on=c.raterParticipantIdKey, how="left"
-        )
-        logger.info(f"  Ratings without assigned group: {ratings[_IN_GROUP].isna().sum()}")
-
-        ratings = ratings.fillna({_IN_GROUP: self._includeUnassigned})
-        if self._strictInclusion:
-          print("Excluding ratings outside of group")
-          ratios = ratings[[c.noteIdKey, _IN_GROUP]].groupby(c.noteIdKey).mean().reset_index()
-          ratings = ratings.merge(ratios[ratios[_IN_GROUP] >= self._captureThreshold][[c.noteIdKey]])
-        ratings = ratings.fillna({_IN_GROUP: self._includeUnassigned})
-        ratings = ratings[ratings[_IN_GROUP]].drop(columns=[_IN_GROUP])
-      logger.info(f"  Ratings after group filter: {len(ratings)}")
     # ------ Edited by Siqi: End ------
+    # Apply group filter
+    if self._includedGroups:
+      userEnrollment = userEnrollment[[c.participantIdKey, c.modelingGroupKey]].rename(
+        columns={c.participantIdKey: c.raterParticipantIdKey}
+      )
+      userEnrollment.loc[:, _IN_GROUP] = (
+        userEnrollment[c.modelingGroupKey].isin(self._includedGroups).astype(pd.BooleanDtype())
+      )
+      ratings = ratings.merge(
+        userEnrollment[[c.raterParticipantIdKey, _IN_GROUP]], on=c.raterParticipantIdKey, how="left"
+      )
+      logger.info(f"  Ratings without assigned group: {ratings[_IN_GROUP].isna().sum()}")
+
+      ratings = ratings.fillna({_IN_GROUP: self._includeUnassigned})
+      if self._strictInclusion:
+        print("Excluding ratings outside of group")
+        ratios = ratings[[c.noteIdKey, _IN_GROUP]].groupby(c.noteIdKey).mean().reset_index()
+        ratings = ratings.merge(ratios[ratios[_IN_GROUP] >= self._captureThreshold][[c.noteIdKey]])
+      ratings = ratings.fillna({_IN_GROUP: self._includeUnassigned})
+      ratings = ratings[ratings[_IN_GROUP]].drop(columns=[_IN_GROUP])
+    logger.info(f"  Ratings after group filter: {len(ratings)}")
     return ratings, noteStatusHistory
 
   def _postprocess_output(
