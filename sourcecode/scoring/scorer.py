@@ -122,17 +122,22 @@ class Scorer(ABC):
     if (not self._includedGroups) and (not self._includedTopics):
       return ratings, noteStatusHistory
     logger.info(f"Filtering ratings for {self.get_name()}.  Original rating length: {len(ratings)}")
-    # Apply topic filter for topic models
-    if self._includedTopics:
-      notes = noteTopics[noteTopics[c.noteTopicKey].isin(self._includedTopics)][[c.noteIdKey]]
-      ratings = ratings.merge(notes)
-      noteStatusHistory = noteStatusHistory.merge(notes)
-    if self._excludeTopics:
-      ratings = ratings[~ratings[c.noteIdKey].isin(noteTopics[c.noteIdKey])]
-      noteStatusHistory = noteStatusHistory[
-        ~noteStatusHistory[c.noteIdKey].isin(noteTopics[c.noteIdKey])
-      ]
-    logger.info(f"  Ratings after topic filter: {len(ratings)}")
+    # ------ Edited by Siqi: Start ------
+    # if noteTopics only has one column, it means that it is a dummy dataframe
+    # only process it if it has more than one column
+    if noteTopics.shape[1] > 1:
+      # Apply topic filter for topic models
+      if self._includedTopics:
+        notes = noteTopics[noteTopics[c.noteTopicKey].isin(self._includedTopics)][[c.noteIdKey]]
+        ratings = ratings.merge(notes)
+        noteStatusHistory = noteStatusHistory.merge(notes)
+      if self._excludeTopics:
+        ratings = ratings[~ratings[c.noteIdKey].isin(noteTopics[c.noteIdKey])]
+        noteStatusHistory = noteStatusHistory[
+          ~noteStatusHistory[c.noteIdKey].isin(noteTopics[c.noteIdKey])
+        ]
+      logger.info(f"  Ratings after topic filter: {len(ratings)}")
+    # ------ Edited by Siqi: End ------
     # Apply group filter
     if self._includedGroups:
       userEnrollment = userEnrollment[[c.participantIdKey, c.modelingGroupKey]].rename(

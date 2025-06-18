@@ -64,8 +64,15 @@ def _get_scorers(
   seed: Optional[int],
   pseudoraters: Optional[bool],
   useStableInitialization: bool = True,
+  # ------ Added by Siqi: Start ------
+  enabledScorers: Optional[Set[Scorers]] = None,
+  # ------ Added by Siqi: End ------
 ) -> Dict[Scorers, List[Scorer]]:
   """Instantiate all Scorer objects which should be used for note ranking.
+
+  # ------ Added by Siqi: Start ------
+  Siqi: If a scorer is not in the enabledScorers set, it should not be instantiated.
+  # ------ Added by Siqi: End ------
 
   Args:
     seed (int, optional): if not None, base distinct seeds for the first and second MF rounds on this value
@@ -75,81 +82,174 @@ def _get_scorers(
     Dict[Scorers, List[Scorer]] containing instantiated Scorer objects for note ranking.
   """
   scorers: Dict[Scorers, List[Scorer]] = dict()
-  scorers[Scorers.MFCoreWithTopicsScorer] = [
-    MFCoreWithTopicsScorer(
-      seed, pseudoraters, useStableInitialization=useStableInitialization, threads=12
+  # ------ Edited by Siqi: Start ------
+  # ------ Commment out previous code: Start ------
+  # scorers[Scorers.MFCoreWithTopicsScorer] = [
+  #   MFCoreWithTopicsScorer(
+  #     seed, pseudoraters, useStableInitialization=useStableInitialization, threads=12
+  #   )
+  # ]
+  # scorers[Scorers.MFCoreScorer] = [
+  #   MFCoreScorer(seed, pseudoraters, useStableInitialization=useStableInitialization, threads=12)
+  # ]
+  # scorers[Scorers.MFExpansionScorer] = [
+  #   MFExpansionScorer(seed, useStableInitialization=useStableInitialization, threads=12)
+  # ]
+  # scorers[Scorers.MFExpansionPlusScorer] = [
+  #   MFExpansionPlusScorer(seed, useStableInitialization=useStableInitialization, threads=12)
+  # ]
+  # scorers[Scorers.ReputationScorer] = [
+  #   ReputationScorer(seed, useStableInitialization=useStableInitialization, threads=12)
+  # ]
+  # # Note that index 0 is reserved, corresponding to no group assigned, so scoring group
+  # # numbers begin with index 1.
+  # scorers[Scorers.MFGroupScorer] = [
+  #   # Scoring Group 13 is currently the largest by far, so total runtime benefits from
+  #   # adding the group scorers in descending order so we start work on Group 13 first.
+  #   MFGroupScorer(includedGroups={i}, groupId=i, threads=groupScorerParalleism.get(i, 4), seed=seed)
+  #   for i in range(groupScorerCount, 0, -1)
+  #   if i != trialScoringGroup
+  # ]
+  # scorers[Scorers.MFGroupScorer].append(
+  #   MFGroupScorer(
+  #     includedGroups={trialScoringGroup},
+  #     groupId=trialScoringGroup,
+  #     threads=groupScorerParalleism.get(trialScoringGroup, 4),
+  #     seed=seed,
+  #     noteInterceptLambda=0.03 * 30,
+  #     userInterceptLambda=0.03 * 5,
+  #     globalInterceptLambda=0.03 * 5,
+  #     noteFactorLambda=0.03 / 3,
+  #     userFactorLambda=0.03 / 4,
+  #     diamondLambda=0.03 * 25,
+  #     normalizedLossHyperparameters=NormalizedLossHyperparameters(
+  #       globalSignNorm=True, noteSignAlpha=None, noteNormExp=0, raterNormExp=-0.25
+  #     ),
+  #     maxFinalMFTrainError=0.16,
+  #     groupThreshold=0.4,
+  #     minMeanNoteScore=-0.01,
+  #     crhThreshold=0.15,
+  #     crhSuperThreshold=None,
+  #     crnhThresholdIntercept=-0.01,
+  #     crnhThresholdNoteFactorMultiplier=0,
+  #     crnhThresholdNMIntercept=-0.02,
+  #     lowDiligenceThreshold=1000,
+  #     factorThreshold=0.4,
+  #     multiplyPenaltyByHarassmentScore=False,
+  #     minimumHarassmentScoreToPenalize=2.5,
+  #     tagConsensusHarassmentHelpfulRatingPenalty=10,
+  #     tagFilterPercentile=90,
+  #     incorrectFilterThreshold=1.5,
+  #   )
+  # )
+  # scorers[Scorers.MFGroupScorer].append(
+  #   MFGroupScorer(
+  #     includedGroups={nmrScoringGroup},
+  #     strictInclusion=True,
+  #     groupThreshold=0.8,
+  #     groupId=nmrScoringGroup,
+  #     threads=groupScorerParalleism.get(nmrScoringGroup, 4),
+  #     seed=seed,
+  #   )
+  # )
+  # scorers[Scorers.MFTopicScorer] = [
+  #   MFTopicScorer(topicName=topic.name, seed=seed) for topic in Topics
+  # ]
+  # scorers[Scorers.MFMultiGroupScorer] = [
+  #   MFMultiGroupScorer(includedGroups={4, 5, 7, 12, 26}, groupId=1, threads=4, seed=seed),
+  # ]
+  # ------ Commment out previous code: End ------
+
+  # ------ Added by Siqi: Start ------
+  # if enabledScorers is None, we want to instantiate all scorers
+  # if enabledScorers is not None, we want to instantiate only specific scorers
+  if enabledScorers is None or Scorers.MFCoreWithTopicsScorer in enabledScorers:
+    scorers[Scorers.MFCoreWithTopicsScorer] = [
+      MFCoreWithTopicsScorer(
+        seed, pseudoraters, useStableInitialization=useStableInitialization, threads=12
+      )
+    ]
+  if enabledScorers is None or Scorers.MFCoreScorer in enabledScorers:
+    # ------ Edited by Siqi: Start ------
+    scorers[Scorers.MFCoreScorer] = [
+      MFCoreScorer(seed, pseudoraters, useStableInitialization=useStableInitialization, threads=12, 
+                   firmRejectThreshold=None, minMinorityNetHelpfulRatings=None, minMinorityNetHelpfulRatio=None)
+    ]
+    # ------ Edited by Siqi: End ------
+  if enabledScorers is None or Scorers.MFExpansionScorer in enabledScorers:
+    scorers[Scorers.MFExpansionScorer] = [
+      MFExpansionScorer(seed, useStableInitialization=useStableInitialization, threads=12)
+    ]
+  if enabledScorers is None or Scorers.MFExpansionPlusScorer in enabledScorers:
+    scorers[Scorers.MFExpansionPlusScorer] = [
+      MFExpansionPlusScorer(seed, useStableInitialization=useStableInitialization, threads=12)
+    ]
+  if enabledScorers is None or Scorers.ReputationScorer in enabledScorers:
+    scorers[Scorers.ReputationScorer] = [
+      ReputationScorer(seed, useStableInitialization=useStableInitialization, threads=12)
+    ]
+  if enabledScorers is None or Scorers.MFGroupScorer in enabledScorers:
+    # Note that index 0 is reserved, corresponding to no group assigned, so scoring group
+    # numbers begin with index 1.
+    scorers[Scorers.MFGroupScorer] = [
+      # Scoring Group 13 is currently the largest by far, so total runtime benefits from
+      # adding the group scorers in descending order so we start work on Group 13 first.
+      MFGroupScorer(includedGroups={i}, groupId=i, threads=groupScorerParalleism.get(i, 4), seed=seed)
+      for i in range(groupScorerCount, 0, -1)
+      if i != trialScoringGroup
+    ]
+    scorers[Scorers.MFGroupScorer].append(
+      MFGroupScorer(
+        includedGroups={trialScoringGroup},
+        groupId=trialScoringGroup,
+        threads=groupScorerParalleism.get(trialScoringGroup, 4),
+        seed=seed,
+        noteInterceptLambda=0.03 * 30,
+        userInterceptLambda=0.03 * 5,
+        globalInterceptLambda=0.03 * 5,
+        noteFactorLambda=0.03 / 3,
+        userFactorLambda=0.03 / 4,
+        diamondLambda=0.03 * 25,
+        normalizedLossHyperparameters=NormalizedLossHyperparameters(
+          globalSignNorm=True, noteSignAlpha=None, noteNormExp=0, raterNormExp=-0.25
+        ),
+        maxFinalMFTrainError=0.16,
+        groupThreshold=0.4,
+        minMeanNoteScore=-0.01,
+        crhThreshold=0.15,
+        crhSuperThreshold=None,
+        crnhThresholdIntercept=-0.01,
+        crnhThresholdNoteFactorMultiplier=0,
+        crnhThresholdNMIntercept=-0.02,
+        lowDiligenceThreshold=1000,
+        factorThreshold=0.4,
+        multiplyPenaltyByHarassmentScore=False,
+        minimumHarassmentScoreToPenalize=2.5,
+        tagConsensusHarassmentHelpfulRatingPenalty=10,
+        tagFilterPercentile=90,
+        incorrectFilterThreshold=1.5,
+      )
     )
-  ]
-  scorers[Scorers.MFCoreScorer] = [
-    MFCoreScorer(seed, pseudoraters, useStableInitialization=useStableInitialization, threads=12)
-  ]
-  scorers[Scorers.MFExpansionScorer] = [
-    MFExpansionScorer(seed, useStableInitialization=useStableInitialization, threads=12)
-  ]
-  scorers[Scorers.MFExpansionPlusScorer] = [
-    MFExpansionPlusScorer(seed, useStableInitialization=useStableInitialization, threads=12)
-  ]
-  scorers[Scorers.ReputationScorer] = [
-    ReputationScorer(seed, useStableInitialization=useStableInitialization, threads=12)
-  ]
-  # Note that index 0 is reserved, corresponding to no group assigned, so scoring group
-  # numbers begin with index 1.
-  scorers[Scorers.MFGroupScorer] = [
-    # Scoring Group 13 is currently the largest by far, so total runtime benefits from
-    # adding the group scorers in descending order so we start work on Group 13 first.
-    MFGroupScorer(includedGroups={i}, groupId=i, threads=groupScorerParalleism.get(i, 4), seed=seed)
-    for i in range(groupScorerCount, 0, -1)
-    if i != trialScoringGroup
-  ]
-  scorers[Scorers.MFGroupScorer].append(
-    MFGroupScorer(
-      includedGroups={trialScoringGroup},
-      groupId=trialScoringGroup,
-      threads=groupScorerParalleism.get(trialScoringGroup, 4),
-      seed=seed,
-      noteInterceptLambda=0.03 * 30,
-      userInterceptLambda=0.03 * 5,
-      globalInterceptLambda=0.03 * 5,
-      noteFactorLambda=0.03 / 3,
-      userFactorLambda=0.03 / 4,
-      diamondLambda=0.03 * 25,
-      normalizedLossHyperparameters=NormalizedLossHyperparameters(
-        globalSignNorm=True, noteSignAlpha=None, noteNormExp=0, raterNormExp=-0.25
-      ),
-      maxFinalMFTrainError=0.16,
-      groupThreshold=0.4,
-      minMeanNoteScore=-0.01,
-      crhThreshold=0.15,
-      crhSuperThreshold=None,
-      crnhThresholdIntercept=-0.01,
-      crnhThresholdNoteFactorMultiplier=0,
-      crnhThresholdNMIntercept=-0.02,
-      crhThresholdNoHighVol=0.12,
-      lowDiligenceThreshold=1000,
-      factorThreshold=0.4,
-      multiplyPenaltyByHarassmentScore=False,
-      minimumHarassmentScoreToPenalize=2.5,
-      tagConsensusHarassmentHelpfulRatingPenalty=10,
-      tagFilterPercentile=90,
-      incorrectFilterThreshold=1.5,
+    scorers[Scorers.MFGroupScorer].append(
+      MFGroupScorer(
+        includedGroups={nmrScoringGroup},
+        strictInclusion=True,
+        groupThreshold=0.8,
+        groupId=nmrScoringGroup,
+        threads=groupScorerParalleism.get(nmrScoringGroup, 4),
+        seed=seed,
+      )
     )
-  )
-  scorers[Scorers.MFGroupScorer].append(
-    MFGroupScorer(
-      includedGroups={nmrScoringGroup},
-      strictInclusion=True,
-      groupThreshold=0.8,
-      groupId=nmrScoringGroup,
-      threads=groupScorerParalleism.get(nmrScoringGroup, 4),
-      seed=seed,
-    )
-  )
-  scorers[Scorers.MFTopicScorer] = [
-    MFTopicScorer(topicName=topic.name, seed=seed) for topic in Topics
-  ]
-  scorers[Scorers.MFMultiGroupScorer] = [
-    MFMultiGroupScorer(includedGroups={4, 5, 7, 12, 26}, groupId=1, threads=4, seed=seed),
-  ]
+  if enabledScorers is None or Scorers.MFTopicScorer in enabledScorers:
+    scorers[Scorers.MFTopicScorer] = [
+      MFTopicScorer(topicName=topic.name, seed=seed) for topic in Topics
+    ]
+  if enabledScorers is None or Scorers.MFMultiGroupScorer in enabledScorers:
+    scorers[Scorers.MFMultiGroupScorer] = [
+      MFMultiGroupScorer(includedGroups={4, 5, 7, 12, 26}, groupId=1, threads=4, seed=seed),
+    ]
+  # ------ Added by Siqi: End ------
+  # ------ Edited by Siqi: End ------
 
   return scorers
 
@@ -843,13 +943,15 @@ def meta_score(
         # the behavior which unsets status (instead tags will be assigned on a best effort basis) and
         # (2) set tags in logic which is not run as a ScoringRule (since ScoringRules function to
         # update note status).
-        scoring_rules.InsufficientExplanation(
-          RuleID.INSUFFICIENT_EXPLANATION,
-          {RuleID.CORE_MODEL},
-          c.needsMoreRatings,
-          c.minRatingsToGetTag,
-          c.minTagsNeededForStatus,
-        ),
+        # ------ Comment out previous code: Start ------
+        # scoring_rules.InsufficientExplanation(
+        #   RuleID.INSUFFICIENT_EXPLANATION,
+        #   {RuleID.CORE_MODEL},
+        #   c.needsMoreRatings,
+        #   c.minRatingsToGetTag,
+        #   c.minTagsNeededForStatus,
+        # ),
+        # ------ Comment out previous code: End ------
       ]
     )
     scoredNotes[c.firstTagKey] = np.nan
@@ -866,21 +968,23 @@ def meta_score(
     if not enableNmrDueToMinStableCrhTime:
       scoringResult[c.updatedTimestampMillisOfNmrDueToMinStableCrhTimeKey] = np.nan
       scoringResult[c.preStabilizationRatingStatusKey] = np.nan
-    # Validate that nothing that was a FIRM_REJECT or CRNH from Core or Expansion is rated CRH
-    coreRejects = scoringResult[c.coreRatingStatusKey].isin(
-      {c.firmReject, c.currentlyRatedNotHelpful}
-    )
-    expansionRejects = scoringResult[c.expansionRatingStatusKey].isin(
-      {c.firmReject, c.currentlyRatedNotHelpful}
-    )
-    blockedRows = coreRejects | (scoringResult[c.coreRatingStatusKey].isna() & expansionRejects)
-    crhRows = scoringResult[c.finalRatingStatusKey] == c.currentlyRatedHelpful
-    logger.info("Summary of blocked and CRH rows:")
-    # TODO: validate that these are all due to ScoringDriftGuard and change to an assert
-    logger.info(
-      scoringResult[blockedRows & crhRows][c.metaScorerActiveRulesKey].value_counts(dropna=False)
-    )
-    logger.info(scoringResult[blockedRows & crhRows][c.decidedByKey].value_counts(dropna=False))
+    # ------ Commment out previous code: Start ------
+    # # Validate that nothing that was a FIRM_REJECT or CRNH from Core or Expansion is rated CRH
+    # coreRejects = scoringResult[c.coreRatingStatusKey].isin(
+    #   {c.firmReject, c.currentlyRatedNotHelpful}
+    # )
+    # expansionRejects = scoringResult[c.expansionRatingStatusKey].isin(
+    #   {c.firmReject, c.currentlyRatedNotHelpful}
+    # )
+    # blockedRows = coreRejects | (scoringResult[c.coreRatingStatusKey].isna() & expansionRejects)
+    # crhRows = scoringResult[c.finalRatingStatusKey] == c.currentlyRatedHelpful
+    # logger.info("Summary of blocked and CRH rows:")
+    # # TODO: validate that these are all due to ScoringDriftGuard and change to an assert
+    # logger.info(
+    #   scoringResult[blockedRows & crhRows][c.metaScorerActiveRulesKey].value_counts(dropna=False)
+    # )
+    # logger.info(scoringResult[blockedRows & crhRows][c.decidedByKey].value_counts(dropna=False))
+    # ------ Commment out previous code: End ------
   with c.time_block("Post-scorers: Meta Score: Preparing Return Values"):
     scoredNotesCols = scoringResult[
       [
@@ -1167,19 +1271,27 @@ def run_prescoring(
     logger.info(get_df_info(ratings, "ratings"))
     logger.info(get_df_info(noteStatusHistory, "noteStatusHistory"))
     logger.info(get_df_info(userEnrollment, "userEnrollment"))
-  with c.time_block("Note Topic Assignment"):
-    topicModel = TopicModel()
-    (
-      noteTopicClassifierPipe,
-      seedLabels,
-      conflictedTexts,
-    ) = topicModel.train_note_topic_classifier(notes)
-    noteTopics = topicModel.get_note_topics(
-      notes,
-      [noteTopicClassifierPipe],
-      [seedLabels],
-      conflictedTextSetsForAccuracyEval=[conflictedTexts],
-    )
+
+  # ------ Edited by Siqi: Start ------
+  if enabledScorers is None or Scorers.MFTopicScorer in enabledScorers:
+    with c.time_block("Note Topic Assignment"):
+      topicModel = TopicModel()
+      (
+        noteTopicClassifierPipe,
+        seedLabels,
+        conflictedTexts,
+      ) = topicModel.train_note_topic_classifier(notes)
+      noteTopics = topicModel.get_note_topics(
+        notes, 
+        noteTopicClassifierPipe, 
+        seedLabels, 
+        conflictedTextsForAccuracyEval=conflictedTexts
+      )
+  else:
+    with c.time_block("Set Note Topics to Dummy dataframe by copying all noteIds"):
+      noteTopics = notes[[c.noteIdKey]].copy()
+      noteTopicClassifierPipe = None
+  # ------ Edited by Siqi: End ------
 
   logger.info(
     f"ratings summary before PSS: {get_df_fingerprint(ratings, [c.noteIdKey, c.raterParticipantIdKey])}"
@@ -1198,6 +1310,9 @@ def run_prescoring(
     seed=seed,
     pseudoraters=False,
     useStableInitialization=useStableInitialization,
+    # ------ Added by Siqi: Start ------
+    enabledScorers=enabledScorers,
+    # ------ Added by Siqi: End ------
   )
 
   # Attempt to convert IDs to Int64 before prescoring.  We expect this to succeed in production,
@@ -1289,7 +1404,9 @@ def run_prescoring(
 
   with c.time_block("Fitting pflip model"):
     pflipPlusModel = PFlipPlusModel(seed=seed)
-    pflipPlusModel.fit(notes, ratings, noteStatusHistory, prescoringRaterModelOutput)
+    # ------ Commment out previous code: Start ------
+    # pflipPlusModel.fit(notes, ratings, noteStatusHistory, prescoringRaterModelOutput)
+    # ------ Commment out previous code: End ------
 
   # Prescoring itself is now done. We will not run final_note_scoring to check note status flips.
   if checkFlips:
@@ -1603,39 +1720,41 @@ def run_final_note_scoring(
   # Since pflip requires access to all notes and ratings colocated on the same post as
   # any note scored by pflip, we  compute pflip predictions before pruning the notes and
   # ratings datasets.
-  with c.time_block("Computing pflip scores."):
-    # Identify set of adjacent notes to scope notes and ratings datasets.
-    pflipNoteIds = noteStatusHistory[
-      noteStatusHistory[c.timestampMillisOfNmrDueToMinStableCrhTimeKey] > 0
-    ][[c.noteIdKey]]  # Compute pflip for any note currently in stabilization.
-    logger.info(f"computing pflip for {len(pflipNoteIds)} notes in stabilization")
-    assert len(pflipNoteIds) == pflipNoteIds[c.noteIdKey].nunique()
-    pflipTweetIds = (
-      notes[[c.noteIdKey, c.tweetIdKey]].merge(pflipNoteIds)[[c.tweetIdKey]].drop_duplicates()
-    )
-    pflipAdjacentNoteIds = notes[[c.noteIdKey, c.tweetIdKey]].merge(pflipTweetIds)[[c.noteIdKey]]
-    assert len(pflipAdjacentNoteIds) == pflipAdjacentNoteIds[c.noteIdKey].nunique()
-    # Prune notes and ratings to adjacent notes
-    pflipNotes = notes.merge(pflipAdjacentNoteIds)
-    pflipRatings = ratings.merge(pflipAdjacentNoteIds)
-    pflipNoteStatusHistory = noteStatusHistory.merge(pflipAdjacentNoteIds)
-    # Apply preprocessing updates
-    pflipNotes, pflipRatings, pflipNoteStatusHistory = preprocess_data(
-      pflipNotes, pflipRatings, pflipNoteStatusHistory
-    )
-    # Apply PSS filtering
-    pflipRatings = filter_ratings_by_post_selection_similarity(
-      pflipNotes,
-      pflipRatings,
-      prescoringRaterModelOutput[prescoringRaterModelOutput[c.postSelectionValueKey] >= 1][
-        [c.raterParticipantIdKey, c.postSelectionValueKey]
-      ],
-    )
-    # Compute pflip scores
-    pflipPredictions = pflipClassifier.predict(
-      pflipNotes, pflipRatings, pflipNoteStatusHistory, prescoringRaterModelOutput
-    )
-    logger.info(f"pflip prediction summary:\n{pflipPredictions[PFLIP_LABEL].value_counts()}")
+  # ------ Commment out previous code: Start ------
+  # with c.time_block("Computing pflip scores."):
+  #   # Identify set of adjacent notes to scope notes and ratings datasets.
+  #   pflipNoteIds = noteStatusHistory[
+  #     noteStatusHistory[c.timestampMillisOfNmrDueToMinStableCrhTimeKey] > 0
+  #   ][[c.noteIdKey]]  # Compute pflip for any note currently in stabilization.
+  #   logger.info(f"computing pflip for {len(pflipNoteIds)} notes in stabilization")
+  #   assert len(pflipNoteIds) == pflipNoteIds[c.noteIdKey].nunique()
+  #   pflipTweetIds = (
+  #     notes[[c.noteIdKey, c.tweetIdKey]].merge(pflipNoteIds)[[c.tweetIdKey]].drop_duplicates()
+  #   )
+  #   pflipAdjacentNoteIds = notes[[c.noteIdKey, c.tweetIdKey]].merge(pflipTweetIds)[[c.noteIdKey]]
+  #   assert len(pflipAdjacentNoteIds) == pflipAdjacentNoteIds[c.noteIdKey].nunique()
+  #   # Prune notes and ratings to adjacent notes
+  #   pflipNotes = notes.merge(pflipAdjacentNoteIds)
+  #   pflipRatings = ratings.merge(pflipAdjacentNoteIds)
+  #   pflipNoteStatusHistory = noteStatusHistory.merge(pflipAdjacentNoteIds)
+  #   # Apply preprocessing updates
+  #   pflipNotes, pflipRatings, pflipNoteStatusHistory = preprocess_data(
+  #     pflipNotes, pflipRatings, pflipNoteStatusHistory
+  #   )
+  #   # Apply PSS filtering
+  #   pflipRatings = filter_ratings_by_post_selection_similarity(
+  #     pflipNotes,
+  #     pflipRatings,
+  #     prescoringRaterModelOutput[prescoringRaterModelOutput[c.postSelectionValueKey] >= 1][
+  #       [c.raterParticipantIdKey, c.postSelectionValueKey]
+  #     ],
+  #   )
+  #   # Compute pflip scores
+  #   pflipPredictions = pflipClassifier.predict(
+  #     pflipNotes, pflipRatings, pflipNoteStatusHistory, prescoringRaterModelOutput
+  #   )
+  #   logger.info(f"pflip prediction summary:\n{pflipPredictions[PFLIP_LABEL].value_counts()}")
+  # ------ Commment out previous code: End ------
 
   with c.time_block("Determine which notes to score."):
     if previousScoredNotes is None:
@@ -1724,15 +1843,21 @@ def run_final_note_scoring(
   with c.time_block("Preprocess smaller dataset since we skipped preprocessing at read time"):
     notes, ratings, noteStatusHistory = preprocess_data(notes, ratings, noteStatusHistory)
 
-  with c.time_block("Note Topic Assignment"):
-    # Prune notesFull to include all notes on any post that is having a note scored.  Recall that
-    # since a post may have multiple notes, and some notes may be scored while others are not,
-    # topic assignment may include text from notes that are not otherwise scored.  Casting to
-    # np.int64 is necessary since datatypes can be inconsistent in unit tests.
-    scoredTweets = set(notes[c.tweetIdKey].astype(np.int64))
-    notesFull = notesFull[notesFull[c.tweetIdKey].astype(np.int64).isin(scoredTweets)]
-    topicModel = TopicModel()
-    noteTopics = topicModel.get_note_topics(notesFull, noteTopicClassifiers=[noteTopicClassifier])
+  # ------ Edited by Siqi: Start ------
+  if enabledScorers is None or Scorers.MFTopicScorer in enabledScorers:
+    with c.time_block("Note Topic Assignment"):
+      # Prune notesFull to include all notes on any post that is having a note scored.  Recall that
+      # since a post may have multiple notes, and some notes may be scored while others are not,
+      # topic assignment may include text from notes that are not otherwise scored.  Casting to
+      # np.int64 is necessary since datatypes can be inconsistent in unit tests.
+      scoredTweets = set(notes[c.tweetIdKey].astype(np.int64))
+      notesFull = notesFull[notesFull[c.tweetIdKey].astype(np.int64).isin(scoredTweets)]
+      topicModel = TopicModel()
+      noteTopics = topicModel.get_note_topics(notesFull, noteTopicClassifier)
+  else:
+    with c.time_block("Set Note Topics to Dummy dataframe by copying all noteIds"):
+      noteTopics = notes[[c.noteIdKey]].copy()
+  # ------ Added by Siqi: End ------
 
   with c.time_block("Post Selection Similarity: Final Scoring"):
     logger.info(f"Post Selection Similarity Final Scoring: begin with {len(ratings)} ratings.")
@@ -1745,8 +1870,14 @@ def run_final_note_scoring(
     )
     logger.info(f"Post Selection Similarity Final Scoring: {len(ratings)} ratings remaining.")
 
-  scorers = _get_scorers(seed, pseudoraters, useStableInitialization=useStableInitialization)
-
+  # ------ Edited by Siqi: Start ------
+  scorers = _get_scorers(
+    seed, 
+    pseudoraters, 
+    useStableInitialization=useStableInitialization,
+    enabledScorers=enabledScorers,
+    )
+  # ------ Edited by Siqi: End ------
   modelResults = _run_scorers(
     args,
     scorers=list(chain(*scorers.values())),
@@ -1768,7 +1899,9 @@ def run_final_note_scoring(
   )
 
   scoredNotes, auxiliaryNoteInfo = combine_final_scorer_results(modelResults, noteStatusHistory)
-  scoredNotes = scoredNotes.merge(pflipPredictions, how="left")
+  # ------ Commment out previous code: Start ------
+  # scoredNotes = scoredNotes.merge(pflipPredictions, how="left")
+  # ------ Commment out previous code: End ------
   scoredNotes, newNoteStatusHistory, auxiliaryNoteInfo = post_note_scoring(
     scorers,
     scoredNotes,
@@ -1909,7 +2042,9 @@ def post_note_scoring(
       c.timestampMillisOfNmrDueToMinStableCrhTimeKey
     ]
     scoredNotes = _add_deprecated_columns(scoredNotes)
-    scoredNotes = scoredNotes.drop(columns=PFLIP_LABEL)
+    # ------ Commment out previous code: Start ------
+    # scoredNotes = scoredNotes.drop(columns=PFLIP_LABEL)
+    # ------ Commment out previous code: End ------
     if strictColumns:
       (
         scoredNotes,
@@ -2025,6 +2160,9 @@ def run_scoring(
     useStableInitialization=useStableInitialization,
     checkFlips=False,
     previousRatingCutoffTimestampMillis=previousRatingCutoffTimestampMillis,
+    # ------ Added by Siqi: Start ------
+    enableNmrDueToMinStableCrhTime=False,
+    # ------ Added by Siqi: End ------
   )
 
   logger.info("We invoked run_scoring and are now in between prescoring and scoring.")
@@ -2062,7 +2200,10 @@ def run_scoring(
     previousScoredNotes=previousScoredNotes,
     previousAuxiliaryNoteInfo=previousAuxiliaryNoteInfo,
     previousRatingCutoffTimestampMillis=previousRatingCutoffTimestampMillis,
-  )
+    # ------ Edited by Siqi: Start ------
+    enableNmrDueToMinStableCrhTime=False,
+    # ------ Edited by Siqi: End ------
+    )
 
   logger.info("Starting contributor scoring")
 

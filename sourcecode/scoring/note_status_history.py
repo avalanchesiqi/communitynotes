@@ -107,15 +107,40 @@ def _update_single_note_status_history(mergedNote, currentTimeMillis, newScoredN
 
   # Update the current status in accordance with this scoring run.
   assert not pd.isna(mergedNote[c.finalRatingStatusKey])
-  mergedNote[c.currentLabelKey] = mergedNote[c.finalRatingStatusKey]
-  mergedNote[c.currentCoreStatusKey] = mergedNote[c.coreRatingStatusKey]
-  mergedNote[c.currentExpansionStatusKey] = mergedNote[c.expansionRatingStatusKey]
-  mergedNote[c.currentGroupStatusKey] = mergedNote[c.groupRatingStatusKey]
-  mergedNote[c.currentDecidedByKey] = mergedNote[c.decidedByKey]
-  mergedNote[c.currentModelingGroupKey] = mergedNote[c.modelingGroupKey]
+  # ------ Edited by Siqi: Start ------
+  # ------ Commment out previous code: Start ------
+  # mergedNote[c.currentLabelKey] = mergedNote[c.finalRatingStatusKey]
+  # mergedNote[c.currentCoreStatusKey] = mergedNote[c.coreRatingStatusKey]
+  # mergedNote[c.currentExpansionStatusKey] = mergedNote[c.expansionRatingStatusKey]
+  # mergedNote[c.currentGroupStatusKey] = mergedNote[c.groupRatingStatusKey]
+  # mergedNote[c.currentDecidedByKey] = mergedNote[c.decidedByKey]
+  # mergedNote[c.currentModelingGroupKey] = mergedNote[c.modelingGroupKey]
+  # mergedNote[c.timestampMillisOfNoteCurrentLabelKey] = currentTimeMillis
+  # mergedNote[c.currentMultiGroupStatusKey] = mergedNote[c.multiGroupRatingStatusKey]
+  # mergedNote[c.currentModelingMultiGroupKey] = mergedNote[c.modelingMultiGroupKey]
+  # ------ Commment out previous code: End ------
+
+  # ------ Added by Siqi: Start ------
+  # mergedNote is a Series object because it is a single note
+  if c.finalRatingStatusKey in mergedNote:
+    mergedNote[c.currentLabelKey] = mergedNote[c.finalRatingStatusKey]
+  if c.coreRatingStatusKey in mergedNote:
+    mergedNote[c.currentCoreStatusKey] = mergedNote[c.coreRatingStatusKey]
+  if c.expansionRatingStatusKey in mergedNote:
+    mergedNote[c.currentExpansionStatusKey] = mergedNote[c.expansionRatingStatusKey]
+  if c.groupRatingStatusKey in mergedNote:
+    mergedNote[c.currentGroupStatusKey] = mergedNote[c.groupRatingStatusKey]
+  if c.decidedByKey in mergedNote:
+    mergedNote[c.currentDecidedByKey] = mergedNote[c.decidedByKey]
+  if c.modelingGroupKey in mergedNote:
+    mergedNote[c.currentModelingGroupKey] = mergedNote[c.modelingGroupKey]
+  if c.multiGroupRatingStatusKey in mergedNote:
+    mergedNote[c.currentMultiGroupStatusKey] = mergedNote[c.multiGroupRatingStatusKey]
+  if c.modelingMultiGroupKey in mergedNote:
+    mergedNote[c.currentModelingMultiGroupKey] = mergedNote[c.modelingMultiGroupKey]
   mergedNote[c.timestampMillisOfNoteCurrentLabelKey] = currentTimeMillis
-  mergedNote[c.currentMultiGroupStatusKey] = mergedNote[c.multiGroupRatingStatusKey]
-  mergedNote[c.currentModelingMultiGroupKey] = mergedNote[c.modelingMultiGroupKey]
+  # ------ Added by Siqi: End ------
+  # ------ Edited by Siqi: End ------
 
   # Lock notes which are (1) not already locked, (2) old enough to lock and (3)
   # were decided by logic which has global display impact.  Criteria (3) guarantees
@@ -289,21 +314,59 @@ def merge_old_and_new_note_statuses(
   scoredNotes: pd.DataFrame,
 ):
   newScoredNotesSuffix = "_sn"
+  # ------ Edited by Siqi: Start ------
+  # ------ Commment out previous code: Start ------
+  # mergedStatuses = oldNoteStatusHistory.merge(
+  #   scoredNotes[
+  #     [
+  #       c.noteIdKey,
+  #       c.createdAtMillisKey,
+  #       c.finalRatingStatusKey,
+  #       c.decidedByKey,
+  #       c.coreRatingStatusKey,
+  #       c.expansionRatingStatusKey,
+  #       c.groupRatingStatusKey,
+  #       c.modelingGroupKey,
+  #       c.updatedTimestampMillisOfNmrDueToMinStableCrhTimeKey,
+  #       c.multiGroupRatingStatusKey,
+  #       c.modelingMultiGroupKey,
+  #     ]
+  #   ].rename(
+  #     {
+  #       c.createdAtMillisKey: c.createdAtMillisKey + newScoredNotesSuffix,
+  #     },
+  #     axis=1,
+  #   ),
+  #   how="inner",
+  #   suffixes=("", newScoredNotesSuffix),
+  # )
+  # ------ Commment out previous code: End ------
+
+  # ------ Added by Siqi: Start ------
+  appendedColumns = [
+    c.noteIdKey,
+    c.createdAtMillisKey,
+  ]
+  optionalColumns = [
+    c.finalRatingStatusKey,
+    c.decidedByKey,
+    c.coreRatingStatusKey,
+    c.expansionRatingStatusKey,
+    c.groupRatingStatusKey,
+    c.modelingGroupKey,
+    c.updatedTimestampMillisOfNmrDueToMinStableCrhTimeKey,
+    c.multiGroupRatingStatusKey,
+    c.modelingMultiGroupKey,
+  ]
+  for k in optionalColumns:
+    if k not in scoredNotes.columns:
+      logger.warning(f"Column {k} not found in scoredNotes, skipping it.")
+      continue
+    appendedColumns.append(k)
+
   mergedStatuses = oldNoteStatusHistory.merge(
     scoredNotes[
-      [
-        c.noteIdKey,
-        c.createdAtMillisKey,
-        c.finalRatingStatusKey,
-        c.decidedByKey,
-        c.coreRatingStatusKey,
-        c.expansionRatingStatusKey,
-        c.groupRatingStatusKey,
-        c.modelingGroupKey,
-        c.updatedTimestampMillisOfNmrDueToMinStableCrhTimeKey,
-        c.multiGroupRatingStatusKey,
-        c.modelingMultiGroupKey,
-      ]
+      appendedColumns
     ].rename(
       {
         c.createdAtMillisKey: c.createdAtMillisKey + newScoredNotesSuffix,
@@ -313,6 +376,9 @@ def merge_old_and_new_note_statuses(
     how="inner",
     suffixes=("", newScoredNotesSuffix),
   )
+  # ------ Added by Siqi: End ------
+  # ------ Edited by Siqi: End ------
+
   assert len(mergedStatuses) == len(
     oldNoteStatusHistory
   ), "scoredNotes and oldNoteStatusHistory should both contain all notes"

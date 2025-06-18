@@ -700,10 +700,14 @@ class NmrDueToMinStableCrhTime(ScoringRule):
         c.noteIdKey,
         c.timestampMillisOfNmrDueToMinStableCrhTimeKey,
         c.firstNonNMRLabelKey,
-        c.noteTopicKey,
-        c.topicNoteConfidentKey,
+        # ------ Commment out previous code: Start ------
+        # c.noteTopicKey,
+        # c.topicNoteConfidentKey,
+        # ------ Commment out previous code: End ------
         statusColumn,
-        PFLIP_LABEL,
+        # ------ Commment out previous code: Start ------
+        # PFLIP_LABEL,
+        # ------ Commment out previous code: End ------
       ]
     ]
 
@@ -792,15 +796,19 @@ class NmrDueToMinStableCrhTime(ScoringRule):
     # (1)-(C)-(d): Remain in stabilization period if the note has been in the period for between
     # requiredStableCrhMinutesThreshold and maxStableCrhMinutesThreshold, and the note is being
     # scored by a TopicModel but TopicModel is not confident
-    notesScoredByTopicButNotConfident = (
-      (~noteStatusUpdates[c.noteTopicKey].isna())
-      & (~noteStatusUpdates[c.topicNoteConfidentKey].isna())
-      & (~(noteStatusUpdates[c.topicNoteConfidentKey].astype(pd.BooleanDtype())))
-    )
+    # ------ Commment out previous code: Start ------
+    # notesScoredByTopicButNotConfident = (
+    #   (~noteStatusUpdates[c.noteTopicKey].isna())
+    #   & (~noteStatusUpdates[c.topicNoteConfidentKey].isna())
+    #   & (~(noteStatusUpdates[c.topicNoteConfidentKey].astype(pd.BooleanDtype())))
+    # )
+    # ------ Commment out previous code: End ------
     noteStatusUpdates.loc[
       (notesGoingCrh | notesGoingNyh)
       & notesAlreadyInStabilization
-      & notesScoredByTopicButNotConfident
+      # ------ Commment out previous code: Start ------
+      # & notesScoredByTopicButNotConfident
+      # ------ Commment out previous code: End ------
       & ~inStabilizationShorterThanMin
       & ~inStabilizationLongerThanMax,
       newStatusColumn,
@@ -810,33 +818,43 @@ class NmrDueToMinStableCrhTime(ScoringRule):
     # requiredStableCrhMinutesThreshold and maxStableCrhMinutesThreshold, and the note has a history
     # of flipping or is predicted to flip
     notesThatAlreadyFlipped = noteStatusUpdates[c.firstNonNMRLabelKey] == c.currentlyRatedHelpful
-    notesPredictedToFlip = noteStatusUpdates[PFLIP_LABEL] != CRH
+    # ------ Commment out previous code: Start ------
+    # notesPredictedToFlip = noteStatusUpdates[PFLIP_LABEL] != CRH
+    # ------ Commment out previous code: End ------
     noteStatusUpdates.loc[
       (notesGoingCrh | notesGoingNyh)
       & notesAlreadyInStabilization
-      & ~notesScoredByTopicButNotConfident
-      & (notesThatAlreadyFlipped | notesPredictedToFlip)
+      # ------ Commment out previous code: Start ------
+      # & ~notesScoredByTopicButNotConfident
+      # & (notesThatAlreadyFlipped | notesPredictedToFlip)
+      # ------ Commment out previous code: End ------
       & ~inStabilizationShorterThanMin
       & ~inStabilizationLongerThanMax,
       newStatusColumn,
     ] = c.needsMoreRatings
-    pflipCounts = noteStatusUpdates[
-      (notesGoingCrh | notesGoingNyh)
-      & notesAlreadyInStabilization
-      & (~notesThatAlreadyFlipped)
-      & ~inStabilizationShorterThanMin
-      & ~inStabilizationLongerThanMax
-    ][PFLIP_LABEL].value_counts(dropna=False)
-    logger.info(f"pflip predictions for notes where pflip has an impact: {pflipCounts}")
+    # ------ Commment out previous code: Start ------
+    # pflipCounts = noteStatusUpdates[
+    #   (notesGoingCrh | notesGoingNyh)
+    #   & notesAlreadyInStabilization
+    #   & (~notesThatAlreadyFlipped)
+    #   & ~inStabilizationShorterThanMin
+    #   & ~inStabilizationLongerThanMax
+    # ][PFLIP_LABEL].value_counts(dropna=False)
+    # logger.info(f"pflip predictions for notes where pflip has an impact: {pflipCounts}")
+    # ------ Commment out previous code: End ------
 
     # (1)-(C)-(f): Remain in stabilization if the note was scored as NYH and hasn't already met a
     # criteria that required it to either leave or remain in stabilization.
     noteStatusUpdates.loc[
       notesGoingNyh
       & notesAlreadyInStabilization
-      & ~notesScoredByTopicButNotConfident
+      # ------ Commment out previous code: Start ------
+      # & ~notesScoredByTopicButNotConfident
+      # ------ Commment out previous code: End ------
       & ~notesThatAlreadyFlipped
-      & ~notesPredictedToFlip
+      # ------ Commment out previous code: Start ------
+      # & ~notesPredictedToFlip
+      # ------ Commment out previous code: End ------
       & ~inStabilizationShorterThanMin
       & ~inStabilizationLongerThanMax,
       newStatusColumn,
@@ -848,9 +866,13 @@ class NmrDueToMinStableCrhTime(ScoringRule):
     noteStatusUpdates.loc[
       notesGoingCrh
       & notesAlreadyInStabilization
-      & ~notesScoredByTopicButNotConfident
+      # ------ Commment out previous code: Start ------
+      # & ~notesScoredByTopicButNotConfident
+      # ------ Commment out previous code: End ------
       & ~notesThatAlreadyFlipped
-      & ~notesPredictedToFlip
+      # ------ Commment out previous code: Start ------
+      # & ~notesPredictedToFlip
+      # ------ Commment out previous code: End ------
       & ~inStabilizationShorterThanMin
       & ~inStabilizationLongerThanMax,
       [newStatusColumn, c.updatedTimestampMillisOfNmrDueToMinStableCrhTimeKey],
