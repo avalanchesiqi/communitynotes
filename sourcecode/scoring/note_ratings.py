@@ -758,44 +758,43 @@ def compute_scored_notes(
     #     ),
     #   ]
     # )
+    # if firmRejectThreshold is not None:
+    #   rules.append(
+    #     scoring_rules.RejectLowIntercept(
+    #       RuleID.LOW_INTERCEPT,
+    #       {RuleID.LARGE_FACTOR},
+    #       c.firmReject,
+    #       firmRejectThreshold,
+    #     )
+    #   )
+    # if minMinorityNetHelpfulRatings is not None:
+    #   rules.append(
+    #     scoring_rules.RequireMinMinorityRaters(
+    #       RuleID.MIN_MINORITY_RATERS,
+    #       {RuleID.LARGE_FACTOR},
+    #       c.needsYourHelp,
+    #       minMinorityNetHelpfulRatings,
+    #     )
+    #   )
+    # if minMinorityNetHelpfulRatio is not None:
+    #   rules.append(
+    #     scoring_rules.RequireRaterBalance(
+    #       RuleID.RATER_BALANCE,
+    #       {RuleID.MIN_MINORITY_RATERS},
+    #       c.needsYourHelp,
+    #       minMinorityNetHelpfulRatio,
+    #     )
+    #   )
+    # if crhThresholdNoHighVol is not None:
+    #   rules.append(
+    #     scoring_rules.NoHighVolIntercept(
+    #       RuleID.NO_HIGH_VOL_INTERCEPT,
+    #       {RuleID.LARGE_FACTOR},
+    #       c.needsYourHelp,
+    #       crhThresholdNoHighVol,
+    #     )
+    #   )
     # ------ Commment out previous code: End ------
-
-    if firmRejectThreshold is not None:
-      rules.append(
-        scoring_rules.RejectLowIntercept(
-          RuleID.LOW_INTERCEPT,
-          {RuleID.LARGE_FACTOR},
-          c.firmReject,
-          firmRejectThreshold,
-        )
-      )
-    if minMinorityNetHelpfulRatings is not None:
-      rules.append(
-        scoring_rules.RequireMinMinorityRaters(
-          RuleID.MIN_MINORITY_RATERS,
-          {RuleID.LARGE_FACTOR},
-          c.needsYourHelp,
-          minMinorityNetHelpfulRatings,
-        )
-      )
-    if minMinorityNetHelpfulRatio is not None:
-      rules.append(
-        scoring_rules.RequireRaterBalance(
-          RuleID.RATER_BALANCE,
-          {RuleID.MIN_MINORITY_RATERS},
-          c.needsYourHelp,
-          minMinorityNetHelpfulRatio,
-        )
-      )
-    if crhThresholdNoHighVol is not None:
-      rules.append(
-        scoring_rules.NoHighVolIntercept(
-          RuleID.NO_HIGH_VOL_INTERCEPT,
-          {RuleID.LARGE_FACTOR},
-          c.needsYourHelp,
-          crhThresholdNoHighVol,
-        )
-      )
   scoredNotes = scoring_rules.apply_scoring_rules(
     noteStats, rules, c.internalRatingStatusKey, c.internalActiveRulesKey
   )
