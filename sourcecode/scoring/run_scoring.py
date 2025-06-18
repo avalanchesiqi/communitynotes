@@ -82,7 +82,6 @@ def _get_scorers(
     Dict[Scorers, List[Scorer]] containing instantiated Scorer objects for note ranking.
   """
   scorers: Dict[Scorers, List[Scorer]] = dict()
-
   # ------ Edited by Siqi: Start ------
   # ------ Commment out previous code: Start ------
   # scorers[Scorers.MFCoreWithTopicsScorer] = [
@@ -322,7 +321,7 @@ def _load_data_with_data_loader_parallelizable(
   """
   _, ratings, noteStatusHistory, userEnrollment = dataLoader.get_data()
 
-  scoringArgs.ratings = ratings
+  scoringArgs.ratings = ratings.sort_values(c.highVolumeRaterKey, ascending=True)
   scoringArgs.noteStatusHistory = noteStatusHistory
   scoringArgs.userEnrollment = userEnrollment
   if type(scoringArgs) == FinalScoringArgs:
@@ -483,15 +482,19 @@ def _save_dfs_to_shared_memory(
   """
   shms: List[shared_memory.SharedMemory] = []
   noteTopics = save_df_to_shared_memory(scoringArgs.noteTopics, shms)
+  # Order ratings by highVolumeRaterKey so that later we can split ratings
+  # to remove ratings from high volume users without having to make a copy.
+  sortedRatings = scoringArgs.ratings.sort_values(c.highVolumeRaterKey, ascending=True)
   ratings = save_df_to_shared_memory(
     keep_columns(
-      scoringArgs.ratings,
+      sortedRatings,
       [
         c.noteIdKey,
         c.raterParticipantIdKey,
         c.helpfulNumKey,
         c.helpfulnessLevelKey,
         c.createdAtMillisKey,
+        c.highVolumeRaterKey,
       ]
       + c.notHelpfulTagsTSVOrder
       + c.helpfulTagsTSVOrder,
