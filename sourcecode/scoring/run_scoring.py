@@ -1298,9 +1298,11 @@ def run_prescoring(
   )
   with c.time_block("Filter ratings by Post Selection Similarity"):
     logger.info(f"Post Selection Similarity Prescoring: begin with {len(ratings)} ratings.")
-    ratings = filter_ratings_by_post_selection_similarity(
-      notes, ratings, postSelectionSimilarityValues
-    )
+    # ------ Commment out previous code: Start ------
+    # ratings = filter_ratings_by_post_selection_similarity(
+    #   notes, ratings, postSelectionSimilarityValues
+    # )
+    # ------ Commment out previous code: End ------
     logger.info(f"Post Selection Similarity Prescoring: {len(ratings)} ratings remaining.")
   logger.info(
     f"ratings summary after PSS: {get_df_fingerprint(ratings, [c.noteIdKey, c.raterParticipantIdKey])}"
@@ -1861,13 +1863,15 @@ def run_final_note_scoring(
 
   with c.time_block("Post Selection Similarity: Final Scoring"):
     logger.info(f"Post Selection Similarity Final Scoring: begin with {len(ratings)} ratings.")
-    ratings = filter_ratings_by_post_selection_similarity(
-      notes,
-      ratings,
-      prescoringRaterModelOutput[prescoringRaterModelOutput[c.postSelectionValueKey] >= 1][
-        [c.raterParticipantIdKey, c.postSelectionValueKey]
-      ],
-    )
+    # ------ Commment out previous code: Start ------
+    # ratings = filter_ratings_by_post_selection_similarity(
+    #   notes,
+    #   ratings,
+    #   prescoringRaterModelOutput[prescoringRaterModelOutput[c.postSelectionValueKey] >= 1][
+    #     [c.raterParticipantIdKey, c.postSelectionValueKey]
+    #   ],
+    # )
+    # ------ Commment out previous code: End ------
     logger.info(f"Post Selection Similarity Final Scoring: {len(ratings)} ratings remaining.")
 
   # ------ Edited by Siqi: Start ------

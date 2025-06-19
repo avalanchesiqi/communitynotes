@@ -1265,8 +1265,10 @@ class MFBaseScorer(Scorer):
     logger.info(
       f"count debugging: {highVolCount}, {lowVolCount}, {ratings.iloc[:lowVolCount][c.highVolumeRaterKey].sum()}, {ratings.iloc[lowVolCount:][c.highVolumeRaterKey].sum()}"
     )
+    # ------ Commment out previous code: Start ------
     # assert ratings.iloc[:lowVolCount][c.highVolumeRaterKey].sum() == 0
     # assert ratings.iloc[lowVolCount:][c.highVolumeRaterKey].sum() == highVolCount
+    # ------ Commment out previous code: End ------
     logger.info(
       f"Total Ratings vs Low Vol Ratings ({self.get_name()}): {len(ratings)} vs {lowVolCount}"
     )
