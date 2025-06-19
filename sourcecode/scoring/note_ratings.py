@@ -606,8 +606,10 @@ def compute_scored_notes(
 
   # Merge with noteParams as necessary
   noteParamsColsToKeep = [c.noteIdKey, c.internalNoteInterceptKey, c.internalNoteFactor1Key]
-  if finalRound:
-    noteParamsColsToKeep += [c.lowDiligenceNoteInterceptKey]
+  # ------ Comment out previous code: Start ------
+  # if finalRound:
+  #   noteParamsColsToKeep += [c.lowDiligenceNoteInterceptKey]
+  # ------ Comment out previous code: End ------
   for col in c.noteParameterUncertaintyTSVColumns:
     if col in noteParams.columns:
       noteParamsColsToKeep.append(col)

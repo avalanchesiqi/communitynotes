@@ -587,7 +587,9 @@ class MFBaseScorer(Scorer):
     # based on the first round scoring results.  Disabling reputation can be desirable
     # in situations where the overall volume of ratings is lower (e.g. topic models).
     if not self._useReputation:
-      assert "MFTopicScorer" in self.get_name(), f"Unexpected scorer: {self.get_name()}"
+      # ------ Comment out previous code: Start ------
+      # assert "MFTopicScorer" in self.get_name(), f"Unexpected scorer: {self.get_name()}"
+      # ------ Comment out previous code: End ------
       logger.info(f"Skipping rep-filtering in prescoring for {self.get_name()}")
       helpfulnessScores = raterParamsUnfiltered[[c.raterParticipantIdKey]]
       helpfulnessScores[
@@ -1054,9 +1056,11 @@ class MFBaseScorer(Scorer):
     # Filters ratings matrix to include only rows (ratings) where the rater was
     # considered helpful.
     if not self._useReputation:
-      assert (
-        "Topic" in self.get_name()
-      ), f"Unexpected scorer has reputation filtering disabled: {self.get_name()}"
+      # ------ Comment out previous code: Start ------
+      # assert (
+      #   "Topic" in self.get_name()
+      # ), f"Unexpected scorer has reputation filtering disabled: {self.get_name()}"
+      # ------ Comment out previous code: End ------
       logger.info(f"Skipping rep-filtering in 2nd phase for {self.get_name()}")
       finalRoundRatings = ratingsForTraining
     else:
@@ -1115,27 +1119,29 @@ class MFBaseScorer(Scorer):
       for col in c.noteParameterUncertaintyTSVColumns:
         noteParams[col] = np.nan
 
-    # Add low diligence intercepts.
-    with self.time_block("Low Diligence Reputation Model"):
-      logger.info(
-        f"In {self.get_name()} final scoring, about to call diligence with {len(finalRoundRatings)} final round ratings."
-      )
-      assert (
-        prescoringMetaScorerOutput.lowDiligenceGlobalIntercept is not None
-      ), "Missing low diligence global intercept"
-      diligenceNoteParams, diligenceRaterParams = fit_low_diligence_model_final(
-        finalRoundRatings,
-        noteInitStateDiligence=prescoringNoteModelOutput,
-        raterInitStateDiligence=prescoringRaterModelOutput,
-        globalInterceptDiligence=prescoringMetaScorerOutput.lowDiligenceGlobalIntercept,
-        ratingsPerNoteLossRatio=prescoringMetaScorerOutput.finalRoundNumRatings
-        / prescoringMetaScorerOutput.finalRoundNumNotes,
-        ratingsPerUserLossRatio=prescoringMetaScorerOutput.finalRoundNumRatings
-        / prescoringMetaScorerOutput.finalRoundNumUsers,
-      )
-      logger.info(f"diligenceNP cols: {diligenceNoteParams.columns}")
-      noteParams = noteParams.merge(diligenceNoteParams, on=c.noteIdKey)
-      logger.info(f"np cols: {noteParams.columns}")
+    # ------ Comment out previous code: Start ------
+    # # Add low diligence intercepts.
+    # with self.time_block("Low Diligence Reputation Model"):
+    #   logger.info(
+    #     f"In {self.get_name()} final scoring, about to call diligence with {len(finalRoundRatings)} final round ratings."
+    #   )
+    #   assert (
+    #     prescoringMetaScorerOutput.lowDiligenceGlobalIntercept is not None
+    #   ), "Missing low diligence global intercept"
+    #   diligenceNoteParams, diligenceRaterParams = fit_low_diligence_model_final(
+    #     finalRoundRatings,
+    #     noteInitStateDiligence=prescoringNoteModelOutput,
+    #     raterInitStateDiligence=prescoringRaterModelOutput,
+    #     globalInterceptDiligence=prescoringMetaScorerOutput.lowDiligenceGlobalIntercept,
+    #     ratingsPerNoteLossRatio=prescoringMetaScorerOutput.finalRoundNumRatings
+    #     / prescoringMetaScorerOutput.finalRoundNumNotes,
+    #     ratingsPerUserLossRatio=prescoringMetaScorerOutput.finalRoundNumRatings
+    #     / prescoringMetaScorerOutput.finalRoundNumUsers,
+    #   )
+    #   logger.info(f"diligenceNP cols: {diligenceNoteParams.columns}")
+    #   noteParams = noteParams.merge(diligenceNoteParams, on=c.noteIdKey)
+    #   logger.info(f"np cols: {noteParams.columns}")
+    # ------ Comment out previous code: End ------
 
     if self._saveIntermediateState:
       self.noteParams = noteParams
@@ -1273,7 +1279,10 @@ class MFBaseScorer(Scorer):
       f"Total Ratings vs Low Vol Ratings ({self.get_name()}): {len(ratings)} vs {lowVolCount}"
     )
     noteScoresNoHighVol, _ = self._score_notes_and_users(
-      ratings=ratings.iloc[:lowVolCount],
+      # ------ Comment out previous code: Start ------
+      # ratings=ratings.iloc[:lowVolCount],
+      # ------ Comment out previous code: End ------
+      ratings=ratings,
       noteStatusHistory=noteStatusHistory,
       prescoringNoteModelOutput=prescoringNoteModelOutput,
       prescoringRaterModelOutput=prescoringRaterModelOutput,

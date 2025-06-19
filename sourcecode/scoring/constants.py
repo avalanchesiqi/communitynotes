@@ -412,7 +412,9 @@ incorrectFilterColumnsAndTypes = [
   (sumOfIncorrectTagRateByRaterIntervalKey, np.double),
   (numVotersIntervalKey, np.double),
   (noteTfIdfIncorrectScoreIntervalKey, np.double),
-  (lowDiligenceLegacyNoteInterceptKey, np.double),
+  # ------ Comment out previous code: Start ------
+  # (lowDiligenceLegacyNoteInterceptKey, np.double),
+  # ------ Comment out previous code: End ------
 ]
 incorrectFilterColumns = [col for (col, _) in incorrectFilterColumnsAndTypes]
 

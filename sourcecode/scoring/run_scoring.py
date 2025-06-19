@@ -1467,8 +1467,10 @@ def run_contributor_scoring(
   helpfulnessScores = convert_prescoring_rater_model_output_to_coalesced_helpfulness_scores(
     prescoringRaterModelOutput, userEnrollment
   )
-  helpfulnessScores = coalesce_group_model_helpfulness_scores(helpfulnessScores)
-  helpfulnessScores = coalesce_multi_group_model_helpfulness_scores(helpfulnessScores)
+  # ------ Comment out previous code: Start ------
+  # helpfulnessScores = coalesce_group_model_helpfulness_scores(helpfulnessScores)
+  # helpfulnessScores = coalesce_multi_group_model_helpfulness_scores(helpfulnessScores)
+  # ------ Comment out previous code: End ------
 
   # Compute contribution statistics and enrollment state for users.
   with c.time_block("Post-scorers: Compute helpfulness scores"):

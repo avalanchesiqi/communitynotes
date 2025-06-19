@@ -36,6 +36,9 @@ class MFCoreScorer(MFBaseScorer):
       firmRejectThreshold=firmRejectThreshold,
       minMinorityNetHelpfulRatings=minMinorityNetHelpfulRatings,
       minMinorityNetHelpfulRatio=minMinorityNetHelpfulRatio,
+      # ------ Added by Siqi: Start ------
+      useReputation=False,
+      # ------ Added by Siqi: End ------
     )
 
   def get_name(self):
