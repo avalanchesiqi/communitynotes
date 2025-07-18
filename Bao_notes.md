@@ -1,0 +1,3 @@
+- Run main.py with tiny data. Check the results to see if it makes sense 
+- Ask Alex for a simulated data file, run again & compare notes 
+- Run the code with simulated data. For each input file, run the code 100 times. Then for each pair of input & output file, calculate the correlation between "real" vs inferred ratings, f_n vs f_u, and i_n vs i_u

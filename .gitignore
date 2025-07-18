@@ -10,3 +10,7 @@ communitynotes_env
 public_venv
 .venv
 sourcecode/data
+
+synthetic_data/*
+!synthetic_data/2025-07-10_results/scripts/
+!synthetic_data/2025-07-10_results/scripts/** 

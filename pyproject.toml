@@ -1,0 +1,28 @@
+[project]
+name = "communitynotes"
+version = "0.1.0"
+description = "Packages to run Twitter/X community note algorithm"
+authors = [
+    {name = "Bao BigRed",email = "btrantruong@gmail.com"}
+]
+package-mode = false
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy (==1.26.4)",
+    "pandas (==2.2.2)",
+    "torch (==2.1.2)",
+    "scipy (==1.11.4)",
+    "scikit-learn",
+    "pyarrow (>=20.0.0,<21.0.0)",
+    "seaborn (>=0.13.2,<0.14.0)",
+    "jupyter (>=1.1.1,<2.0.0)",
+    "ipykernel (>=6.29.5,<7.0.0)",
+    "wandb (>=0.20.1,<0.21.0)",
+    "tqdm (>=4.67.1,<5.0.0)"
+]
+
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
