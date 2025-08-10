@@ -1298,11 +1298,12 @@ def run_prescoring(
   )
   with c.time_block("Filter ratings by Post Selection Similarity"):
     logger.info(f"Post Selection Similarity Prescoring: begin with {len(ratings)} ratings.")
-    # ------ Commment out previous code: Start ------
+    # ------ Edited by Siqi: Start ------
     # ratings = filter_ratings_by_post_selection_similarity(
     #   notes, ratings, postSelectionSimilarityValues
     # )
-    # ------ Commment out previous code: End ------
+    logger.info(f"Post Selection Similarity is disabled, using all {len(ratings)} ratings.")
+    # ------ Edited by Siqi: End ------
     logger.info(f"Post Selection Similarity Prescoring: {len(ratings)} ratings remaining.")
   logger.info(
     f"ratings summary after PSS: {get_df_fingerprint(ratings, [c.noteIdKey, c.raterParticipantIdKey])}"

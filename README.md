@@ -29,6 +29,19 @@ python3 main.py \
   --nostrict-columns \
   --no-parquet \
   --scorers MFCoreScorer &> main_tiny.log
+
+python3 main.py \
+  --enrollment data/NotesTestData/AJS_TEST1_userEnrollment-00000.tsv \
+  --notes data/NotesTestData/AJS_TEST1_tiny-notes-00000.tsv \
+  --ratings data/NotesTestData/AJS_TEST1_tiny-ratings-00000.tsv \
+  --status data/NotesTestData/AJS_TEST1_tiny-noteStatusHistory-00000.tsv \
+  --outdir data/NotesTestData \
+  --noenforce-types \
+  --nocheck-flips \
+  --nopseudoraters \
+  --nostrict-columns \
+  --no-parquet \
+  --scorers MFCoreScorer &> AJS_new_code.log
 ```
 
 ## Use the `cutoff-timestamp-millis` argument on the original data
