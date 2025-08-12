@@ -41,7 +41,8 @@ python3 main.py \
   --nopseudoraters \
   --nostrict-columns \
   --no-parquet \
-  --scorers MFCoreScorer &> AJS_new_code.log
+  --use-reputation \
+  --scorers MFCoreScorer &> AJS_with_reput.log
 ```
 
 ## Use the `cutoff-timestamp-millis` argument on the original data
