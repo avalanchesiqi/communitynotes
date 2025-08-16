@@ -3,6 +3,11 @@ from typing import Dict, List, Optional
 from . import constants as c
 from .mf_base_scorer import MFBaseScorer
 
+# ------ Added by Siqi: Start ------
+import logging
+logger = logging.getLogger("birdwatch.mf_core_scorer")
+logger.setLevel(logging.INFO)
+# ------ Added by Siqi: End ------
 
 class MFCoreScorer(MFBaseScorer):
   def __init__(
@@ -15,6 +20,9 @@ class MFCoreScorer(MFBaseScorer):
     firmRejectThreshold: Optional[float] = 0.3,
     minMinorityNetHelpfulRatings: Optional[int] = 4,
     minMinorityNetHelpfulRatio: Optional[float] = 0.05,
+    # ------ Added by Siqi: Start ------
+    useReputation: bool = False,
+    # ------ Added by Siqi: End ------
   ) -> None:
     """Configure MFCoreScorer object.
 
@@ -37,9 +45,12 @@ class MFCoreScorer(MFBaseScorer):
       minMinorityNetHelpfulRatings=minMinorityNetHelpfulRatings,
       minMinorityNetHelpfulRatio=minMinorityNetHelpfulRatio,
       # ------ Added by Siqi: Start ------
-      useReputation=False,
+      useReputation=useReputation,
       # ------ Added by Siqi: End ------
     )
+    # ------ Added by Siqi: Start ------
+    logger.info(f"Check useReputation in {self.get_name()}: {useReputation}")
+    # ------ Added by Siqi: End ------
 
   def get_name(self):
     return "MFCoreScorer"

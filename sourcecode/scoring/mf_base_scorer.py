@@ -614,7 +614,9 @@ class MFBaseScorer(Scorer):
       harassmentAbuseNoteParams = noteParamsUnfiltered[[c.noteIdKey]]
       harassmentAbuseNoteParams[[c.harassmentNoteInterceptKey, c.harassmentNoteFactor1Key]] = np.nan
     else:
-      assert "MFTopicScorer" not in self.get_name(), f"Unexpected scorer: {self.get_name()}"
+      # ------ Comment out previous code: Start ------
+      # assert "MFTopicScorer" not in self.get_name(), f"Unexpected scorer: {self.get_name()}"
+      # ------ Comment out previous code: End ------
       logger.info(f"Performing rep-filtering for {self.get_name()}")
       # Get a dataframe of scored notes based on the algorithm results above
       with self.time_block("Compute scored notes"):
@@ -982,8 +984,10 @@ class MFBaseScorer(Scorer):
           c.successfulRatingNotHelpfulCount,
           c.unsuccessfulRatingHelpfulCount,
           c.unsuccessfulRatingNotHelpfulCount,
-          c.totalHelpfulHarassmentRatingsPenaltyKey,
-          c.raterAgreeRatioWithHarassmentAbusePenaltyKey,
+          # ------ Comment out previous code: Start ------
+          # c.totalHelpfulHarassmentRatingsPenaltyKey,
+          # c.raterAgreeRatioWithHarassmentAbusePenaltyKey,
+          # ------ Comment out previous code: End ------
         ]
       ],
       on=c.raterParticipantIdKey,

@@ -174,6 +174,16 @@ def parse_args():
     dest="sample_ratings",
     help="Set to sample ratings at random.",
   )
+  # ------ Added by Siqi: Start ------
+  parser.add_argument(
+    "--use-reputation",
+    default=False,
+    action="store_true",
+    dest="useReputation",
+    help="Enable the use of reputation scores.",
+  )
+  parser.set_defaults(useReputation=False)
+  # ------ Added by Siqi: End ------
   return parser.parse_args()
 
 
@@ -248,6 +258,9 @@ def _run_scorer(
     previousScoredNotes=previousScoredNotes,
     previousAuxiliaryNoteInfo=previousAuxiliaryNoteInfo,
     previousRatingCutoffTimestampMillis=args.previous_rating_cutoff_millis,
+    # ------ Added by Siqi: Start ------
+    useReputation=args.useReputation,
+    # ------ Added by Siqi: End ------
     **extraScoringArgs,
   )
 

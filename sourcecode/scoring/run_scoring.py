@@ -66,6 +66,7 @@ def _get_scorers(
   useStableInitialization: bool = True,
   # ------ Added by Siqi: Start ------
   enabledScorers: Optional[Set[Scorers]] = None,
+  useReputation: bool = False,
   # ------ Added by Siqi: End ------
 ) -> Dict[Scorers, List[Scorer]]:
   """Instantiate all Scorer objects which should be used for note ranking.
@@ -173,7 +174,8 @@ def _get_scorers(
     # ------ Edited by Siqi: Start ------
     scorers[Scorers.MFCoreScorer] = [
       MFCoreScorer(seed, pseudoraters, useStableInitialization=useStableInitialization, threads=12, 
-                   firmRejectThreshold=None, minMinorityNetHelpfulRatings=None, minMinorityNetHelpfulRatio=None)
+                   firmRejectThreshold=None, minMinorityNetHelpfulRatings=None, minMinorityNetHelpfulRatio=None,
+                   useReputation=useReputation)
     ]
     # ------ Edited by Siqi: End ------
   if enabledScorers is None or Scorers.MFExpansionScorer in enabledScorers:
@@ -1255,6 +1257,9 @@ def run_prescoring(
   checkFlips: bool = True,
   enableNmrDueToMinStableCrhTime: bool = True,
   previousRatingCutoffTimestampMillis: Optional[int] = None,
+  # ------ Added by Siqi: Start ------
+  useReputation: bool = False,
+  # ------ Added by Siqi: End ------
 ) -> Tuple[
   pd.DataFrame,
   pd.DataFrame,
@@ -1298,11 +1303,12 @@ def run_prescoring(
   )
   with c.time_block("Filter ratings by Post Selection Similarity"):
     logger.info(f"Post Selection Similarity Prescoring: begin with {len(ratings)} ratings.")
-    # ------ Commment out previous code: Start ------
+    # ------ Edited by Siqi: Start ------
     # ratings = filter_ratings_by_post_selection_similarity(
     #   notes, ratings, postSelectionSimilarityValues
     # )
-    # ------ Commment out previous code: End ------
+    logger.info(f"Post Selection Similarity is disabled, using all {len(ratings)} ratings.")
+    # ------ Edited by Siqi: End ------
     logger.info(f"Post Selection Similarity Prescoring: {len(ratings)} ratings remaining.")
   logger.info(
     f"ratings summary after PSS: {get_df_fingerprint(ratings, [c.noteIdKey, c.raterParticipantIdKey])}"
@@ -1314,6 +1320,7 @@ def run_prescoring(
     useStableInitialization=useStableInitialization,
     # ------ Added by Siqi: Start ------
     enabledScorers=enabledScorers,
+    useReputation=useReputation,
     # ------ Added by Siqi: End ------
   )
 
@@ -1707,6 +1714,9 @@ def run_final_note_scoring(
   previousAuxiliaryNoteInfo: Optional[pd.DataFrame] = None,
   previousRatingCutoffTimestampMillis: Optional[int] = 0,
   enableNmrDueToMinStableCrhTime: bool = True,
+  # ------ Added by Siqi: Start ------
+  useReputation: bool = False,
+  # ------ Added by Siqi: End ------
 ):
   metrics = {}
   with c.time_block("Logging Final Scoring RAM usage"):
@@ -1882,6 +1892,9 @@ def run_final_note_scoring(
     pseudoraters, 
     useStableInitialization=useStableInitialization,
     enabledScorers=enabledScorers,
+    # ------ Added by Siqi: Start ------
+    useReputation=useReputation,
+    # ------ Added by Siqi: End ------
     )
   # ------ Edited by Siqi: End ------
   modelResults = _run_scorers(
@@ -2098,6 +2111,9 @@ def run_scoring(
   previousScoredNotes: Optional[pd.DataFrame] = None,
   previousAuxiliaryNoteInfo: Optional[pd.DataFrame] = None,
   previousRatingCutoffTimestampMillis: Optional[int] = 0,
+  # ------ Added by Siqi: Start ------
+  useReputation: bool = False,
+  # ------ Added by Siqi: End ------
 ):
   """Runs both phases of scoring consecutively. Only for adhoc/testing use.
   In prod, we run each phase as a separate binary.
@@ -2168,6 +2184,7 @@ def run_scoring(
     previousRatingCutoffTimestampMillis=previousRatingCutoffTimestampMillis,
     # ------ Added by Siqi: Start ------
     enableNmrDueToMinStableCrhTime=False,
+    useReputation=useReputation,
     # ------ Added by Siqi: End ------
   )
 
@@ -2208,6 +2225,7 @@ def run_scoring(
     previousRatingCutoffTimestampMillis=previousRatingCutoffTimestampMillis,
     # ------ Edited by Siqi: Start ------
     enableNmrDueToMinStableCrhTime=False,
+    useReputation=useReputation,
     # ------ Edited by Siqi: End ------
     )
 
