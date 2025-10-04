@@ -2,6 +2,12 @@
 
 This folder contains summary results for experiments analyzing the Community Notes algorithm's performance under various synthetic conditions.
 
+- `*/FP_count`: summary data
+- `*.ipynb`: scripts to create figures, numbered by the order they appear in the manuscript
+- `plots`: figures 
+- `definitions.json`: metric definitions; global maps for file names -> experimental parameters, parameter names -> axis labels, etc.
+- `stylesheet.mplstyle`: defines the formatting of the plots. 
+
 ## Experiment Descriptions
 
 The following experiments are included in this dataset:
