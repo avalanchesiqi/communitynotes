@@ -84,8 +84,8 @@ left_inferred = df[df.condition == "fn<0_inferred"]
 all_notes = df[df.condition == "all"]
 
 # Proportion of notes published with fn<0
-left_p_published_inferred = left_inferred['n_H'] / all_notes['n_H']
-left_p_published_real = left_real['n_H'] / all_notes['n_H']
+left_p_published_inferred = left_inferred['n_H'].iloc[0] / all_notes['n_H'].iloc[0]
+left_p_published_real = left_real['n_H'].iloc[0] / all_notes['n_H'].iloc[0]
 
 ```
 
