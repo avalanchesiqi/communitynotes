@@ -1,0 +1,116 @@
+{
+    "metrics": [
+        "p_h_U",
+        "p_u_H",
+        "p_H_u",
+        "p_U_h"
+    ],
+    "metric_names": {
+        "p_u_H": "Pollution rate",
+        "p_h_U": "Suppression rate",
+        "p_H_u": "Infiltration rate",
+        "p_U_h": "Waste rate"
+    },
+    "conditions": [
+        "fn<0",
+        "fn>=0"
+    ],
+    "condition_names": {
+        "fn<0": "$f_n < 0$",
+        "fn>=0": "$f_n \\geq 0$"
+    },
+    "exps": [
+        "bad_actor_no_bias_grid",
+        "bad_actor_with_bias_grid",
+        "multi_bad_actor_no_bias",
+        "multi_bad_actor_with_bias",
+        "multi_bad_actor_with_bias_bhvr_1",
+        "homophily",
+        "iu_var",
+        "note_pol",
+        "user_pol",
+        "Homophily_HIGH_UPol_HIGH_NPol_HIGH",
+        "Homophily_HIGH_UPol_LOW_NPol_LOW",
+        "Homophily_LOW_UPol_HIGH_NPol_LOW",
+        "Homophily_LOW_UPol_LOW_NPol_HIGH",
+        "Homophily_LOW_UPol_LOW_NPol_LOW"
+    ],
+    "exp_to_y_axis_names": {
+        "homophily": "dhom",
+        "iu_var": "var_iu",
+        "note_pol": "mu_fnr",
+        "user_pol": "mu_fur",
+        "bad_actor_no_bias_grid": "bhvr_rate",
+        "bad_actor_with_bias_grid": "bhvr_rate",
+        "multi_bad_actor_no_bias": "bhvr_rate",
+        "multi_bad_actor_with_bias": "bhvr_rate",
+        "multi_bad_actor_with_bias_bhvr_1": "st_prop",
+        "Homophily_*": "bhvr_rate"
+    },
+    "ax_labels": {
+        "bhvr_rate": "Frequency of bad rater behavior",
+        "st_prop": "Percentage of bad raters",
+        "mu_fnr": "Note polarization, $\\rho_n$",
+        "var_iu": "Rater helpfulness variability, $\\sigma_u^I$",
+        "mu_fur": "Rater polarization, $\\rho_u$",
+        "dhom": "Rater-note homophily, $E_h$"
+    },
+    "fname_params_to_params": {
+        "bad_actor_no_bias_grid": [
+            "st_prop",
+            "bhvr_rate"
+        ],
+        "bad_actor_with_bias_grid": [
+            "st_prop",
+            "bhvr_rate"
+        ],
+        "multi_bad_actor_no_bias": [
+            "no_run",
+            "bhvr_rate"
+        ],
+        "multi_bad_actor_with_bias": [
+            "no_run",
+            "bhvr_rate"
+        ],
+        "multi_bad_actor_with_bias_bhvr_1": [
+            "no_run",
+            "st_prop"
+        ],
+        "Homophily": [
+            "no_run",
+            "dhom"
+        ],
+        "iu_var": [
+            "no_run",
+            "var_iu"
+        ],
+        "note_pol": [
+            "no_run",
+            "mu_fnr"
+        ],
+        "user_pol": [
+            "no_run",
+            "mu_fur"
+        ],
+        "Homophily_HIGH_UPol_HIGH_NPol_HIGH": [
+            "no_run",
+            "bhvr_rate"
+        ],
+        "Homophily_HIGH_UPol_LOW_NPol_LOW": [
+            "no_run",
+            "bhvr_rate"
+        ],
+        "Homophily_LOW_UPol_HIGH_NPol_LOW": [
+            "no_run",
+            "bhvr_rate"
+        ],
+        "Homophily_LOW_UPol_LOW_NPol_HIGH": [
+            "no_run",
+            "bhvr_rate"
+        ],
+        "Homophily_LOW_UPol_LOW_NPol_LOW": [
+            "no_run",
+            "bhvr_rate"
+        ]
+    }
+}
