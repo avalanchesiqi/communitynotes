@@ -24,8 +24,17 @@ def extract_subsample(data_dir, end_datetime):
     print(f'Total number of notes: {num_note:,}')
     # filter the notes that are published before the end timestamp
     tiny_note_df = note_df[note_df['createdAtMillis'] < end_timestamp]
-    # set the summary column to empty string
-    tiny_note_df = tiny_note_df.assign(summary='')
+    # set the classification column to MISINFORMED_OR_POTENTIALLY_MISLEADING
+    tiny_note_df['classification'] = 'MISINFORMED_OR_POTENTIALLY_MISLEADING'
+    # set the summary column to TOPIC SUMMARY
+    tiny_note_df['summary'] = 'TOPIC SUMMARY'
+    # apart from noteId, noteAuthorParticipantId, createdAtMillis, tweetId, classification, summary,
+    # set all other columns to 0
+    cols_to_empty = [
+        col for col in tiny_note_df.columns
+        if col not in ['noteId', 'noteAuthorParticipantId', 'createdAtMillis', 'tweetId', 'classification', 'summary']
+    ]
+    tiny_note_df[cols_to_empty] = 0
     num_tiny_note = len(tiny_note_df)
     print(f'Number of notes before {end_datetime}: {num_tiny_note:,}')
     print(f'Note sampling rate: {num_tiny_note / num_note:.2%}\n')
@@ -66,6 +75,17 @@ def extract_subsample(data_dir, end_datetime):
             all_tiny_rating_df = pd.concat([all_tiny_rating_df, tiny_rating_df], ignore_index=True)
         
     print(f'Number of all ratings before {end_datetime}: {len(all_tiny_rating_df):,}')
+    # set the ratedOnTweetId column to -1
+    all_tiny_rating_df['ratedOnTweetId'] = -1
+    # apart from noteId, raterParticipantId, createdAtMillis, version, agree, disagree, 
+    # helpful, notHelpful, helpfulnessLevel, ratedOnTweetId,
+    # set all other columns to 0
+    cols_to_empty = [
+        col for col in all_tiny_rating_df.columns
+        if col not in ['noteId', 'raterParticipantId', 'createdAtMillis', 'version', 'agree',
+                       'disagree', 'helpful', 'notHelpful', 'helpfulnessLevel', 'ratedOnTweetId']
+    ]
+    all_tiny_rating_df[cols_to_empty] = 0
     # save all filtered ratings to a new tsv file
     all_tiny_rating_df.to_csv(
         'tiny-ratings-00000.tsv',

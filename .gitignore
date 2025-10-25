@@ -8,5 +8,4 @@ __pycache__
 .vscode*
 communitynotes_env
 public_venv
-.venv
 sourcecode/data
