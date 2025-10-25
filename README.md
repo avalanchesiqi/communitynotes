@@ -1,20 +1,48 @@
-# Siqi's notes
+# Community Notes -- CORE Model
 
-## Setup Python venv and install requirements
+This repository hosts a simplified version of X's communitynotes.
+The code is developed for the simulated data in the [communitynotes-manipulation](https://github.com/osome-iu/communitynotes-manipulation) project.
+
+Notes about the simulated Community Notes data:
+- It does not contain note summaries, thus topic modeling is not applicable.
+- It does not contain detailed tags (e.g., SpamHarassmentOrAbuse), thus Harassment-Abuse Tag-Consensus Matrix Factorization and Note Status Explanation rule are not applicable.
+- It assumes that every rating is posted 1 millisecond after the note, thus all ratings are valid ratings.
+
+Code change summary:
+- In data processing, Post Selection Similarity module is disabled.
+- In model training, only the CORE model is retained.
+- Inside the CORE model training,
+  - When deciding rater helpfulness, only use the raterAgreeRatio (0.66).
+  - notHelpfulSpamHarassmentOrAbuse model is disabled.
+  - Low diligence model is disabled.
+- In note status scoring rule,
+  - Only InitialNMR, CRH, CRNH are retained.
+- In post training phase,
+  - PFLIP model is disabled.
+
+## Setup Community Notes env and install requirements
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
+python3 -m venv communitynotes_env
+source communitynotes_env/bin/activate
 python3 -m pip install --upgrade pip
 python3 -m pip install -r requirements.txt
 ```
 
-## Create a tiny subsample
-```bash
-cd sourcecode/data/tiny_data 
+## Create a tiny subsample using the very large real world data
+Download up-to-date [CommunityNotes data](https://twitter.com/i/communitynotes/download-data),
+
+``` bash
+cd sourcecode
+mkdir data/cn_{date}  # Suggest tagging the data version with the date
+# download Notes data, Note status history data, User enrollment status data to the cn_{date} directory
+mkdir data/cn_{date}/ratings
+# download Ratings data to the ratings directory
+cd data/tiny_data 
 python3 create_tiny_data.py --data_dir ../cn_20250428 --end_datetime 2023-01-01
+# this script extracts all data published before --end_datetime
 ```
 
-## Use a tiny subsample
+## Run the simplified Community Notes algorithm
 ```bash
 cd sourcecode
 python3 main.py \
@@ -28,69 +56,23 @@ python3 main.py \
   --nopseudoraters \
   --nostrict-columns \
   --no-parquet \
-  --scorers MFCoreScorer &> main_tiny.log
-
-python3 main.py \
-  --enrollment data/NotesTestData/AJS_TEST1_userEnrollment-00000.tsv \
-  --notes data/NotesTestData/AJS_TEST1_tiny-notes-00000.tsv \
-  --ratings data/NotesTestData/AJS_TEST1_tiny-ratings-00000.tsv \
-  --status data/NotesTestData/AJS_TEST1_tiny-noteStatusHistory-00000.tsv \
-  --outdir data/NotesTestData \
-  --noenforce-types \
-  --nocheck-flips \
-  --nopseudoraters \
-  --nostrict-columns \
-  --no-parquet \
   --use-reputation \
-  --scorers MFCoreScorer &> AJS_with_reput.log
+  --scorers MFCoreScorer &> data/tiny_data/log_with_reput.log
 ```
 
-## Use the `cutoff-timestamp-millis` argument on the original data
-* Note that this is much slower than the above method as it loads all data
-```bash
-  python3 main.py \
-  --enrollment data/cn_20250428/userEnrollment-00000.tsv\
-  --notes data/cn_20250428/notes-00000.tsv \
-  --ratings data/cn_20250428/ratings \
-  --status data/cn_20250428/noteStatusHistory-00000.tsv \
-  --outdir data/cn_20250428 \
-  --noenforce-types \
-  --nocheck-flips \
-  --nopseudoraters \
-  --nostrict-columns \
-  --no-parquet \
-  --cutoff-timestamp-millis 1672531200000 \
-  --scorers MFCoreScorer &> main_cn_20250428.log
-```
+### Argument explanations
+* --noenforce-types: do not enforce type checks
+* --nocheck-flips: do not run the PFLIP model
+* --nopseudoraters: do not add pseudoraters to obtain a CI estimate
+* --nostrict-columns: allow unexpected columns
+* --no-parquet: disable writing parquet files
+* --use-reputation: filter raters with low helpfulness scores. Do not add this argument if wanting to omit the rater helpfulness module. See [here](https://communitynotes.x.com/guide/en/under-the-hood/contributor-scores#filtering-ratings-based-on-helpfulness-scores) for details.
 
-## Use the very large real world data
-Download up-to-date [CommunityNotes data](https://twitter.com/i/communitynotes/download-data),
+### Python version
+We have tested the code with Python 3.9.6.
 
-``` bash
-cd sourcecode
-mkdir data
-mkdir data/cn_{date}  # Suggest tagging the data version with the date
-# download Notes data, Note status history data, User enrollment status data
-mkdir data/cn_{date}/ratings
-# download Ratings data to the ratings directory
-```
-
-Then after downloading the data files (see next section) into /sourcecode/, you will be able to run:
-```bash
-cd sourcecode
-python3 main.py \
-  --enrollment data/cn_{date}/userEnrollment-00000.tsv \
-  --notes data/cn_{date}/notes-00000.tsv \
-  --ratings data/cn_{date}/ratings \
-  --status data/cn_{date}/noteStatusHistory-00000.tsv \
-  --outdir data/cn_{date} \
-  --noenforce-types \
-  --nopseudoraters \
-  --nostrict-columns \
-  --no-parquet
-```
-
-Multiple versions of Python3 should work. I have tested the code with Python 3.9.6.
+---
+Below is the original README from X's communitynotes repo.
 
 # Community Notes
 
